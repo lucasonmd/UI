@@ -1,7 +1,5 @@
 namespace HMICore.ViewModels;
 
-/// <summary>바인딩 경로 <c>SystemData.*</c> 그대로 - 기존 프로젝트가 이미 이
-/// 경로로 바인딩하고 있어서 이름/구조를 맞췄다.</summary>
 public sealed class SystemDataModel : ObservableObject
 {
     private string _currentTime = string.Empty;

@@ -1,32 +1,21 @@
-<!--
-    GVA HMI Core - 호스트 창.
+<Window
+    x:Class="HMICore.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="GVA HMI Core — 1920 × 1080"
+    Width="1920"
+    Height="1080"
+    MinWidth="640"
+    MinHeight="380"
+    Background="#08080A"
+    MouseLeftButtonDown="OnWindowMouseLeftButtonDown"
+    ResizeMode="CanResize"
+    TextOptions.TextFormattingMode="Ideal"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    mc:Ignorable="d">
 
-    실제 UI 는 이 파일에 없다 - Controls/CoreUiBuilder.cs 가 아래 gd_main Grid
-    안에 전부 코드로 만들어 넣는다(StatusBar, 좌우 레일, 하단 열, 기능영역 라벨,
-    Application 프레임/자리표시자, 외곽 베젤 전부). "기존 프로젝트에 UI 만 옮겨
-    붙인다"는 전제라서, 이 Window 클래스는 껍데기(창 크기·테두리 없음·드래그 이동
-    같은 창 자체 설정)와 Application 프로세스 실행만 맡고, 실제 HMI 화면 구성은
-    CoreUiBuilder 하나로 완전히 분리했다 - CoreUiBuilder 는 이 Window 를 몰라도
-    되고, gd_main 이라는 이름의 Grid 를 가진 아무 Window 에나 쓸 수 있다.
-
-    타이틀바 없음(WindowStyle=None) - 창 이동은 빈 배경 드래그, 종료는 Alt+F4.
--->
-<Window x:Class="HMICore.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        Title="GVA HMI Core — 1920 × 1080"
-        Width="1280" Height="760"
-        MinWidth="640" MinHeight="380"
-        WindowStartupLocation="CenterScreen"
-        Background="#08080A"
-        WindowStyle="None"
-        ResizeMode="CanResize"
-        MouseLeftButtonDown="OnWindowMouseLeftButtonDown"
-        TextOptions.TextFormattingMode="Ideal">
-
-    <!-- CoreUiBuilder 가 이 Grid 를 이름으로 찾아서(FindName) 그 안에 전부 채운다. -->
-    <Grid x:Name="gd_main"/>
+    <Grid x:Name="gd_main" />
 </Window>

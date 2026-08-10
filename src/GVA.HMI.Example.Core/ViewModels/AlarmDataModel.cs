@@ -1,8 +1,5 @@
 namespace HMICore.ViewModels;
 
-/// <summary>바인딩 경로 <c>AlarmData.*</c> 그대로. <see cref="AlarmLevel"/> 은
-/// "경고"/"주의" 문자열이고, StatusBarView.xaml 의 DataTrigger 가 이 값을 직접
-/// 비교해서 알람 시간/메세지/카운트 뱃지 색을 바꾼다.</summary>
 public sealed class AlarmDataModel : ObservableObject
 {
     private string _alarmTime = string.Empty;
@@ -31,7 +28,6 @@ public sealed class AlarmDataModel : ObservableObject
         set => SetProperty(ref _alarmCount, value);
     }
 
-    /// <summary>"경고" / "주의" (그 외 값이면 중립색).</summary>
     public string AlarmLevel
     {
         get => _alarmLevel;

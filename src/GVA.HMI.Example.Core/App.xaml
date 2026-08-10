@@ -5,8 +5,6 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- 순서 고정 : Colors -> Styles (뒤가 앞을 StaticResource 로 참조).
-                     아이콘("유지보수가 안 될 것 같다" 피드백으로 전부 제거)은 없다. -->
                 <ResourceDictionary Source="Themes/GvaColors.xaml"/>
                 <ResourceDictionary Source="Themes/GvaStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>

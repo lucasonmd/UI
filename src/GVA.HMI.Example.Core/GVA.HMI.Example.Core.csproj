@@ -8,9 +8,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <RootNamespace>HMICore</RootNamespace>
-    <!-- AssemblyName 은 그대로 둔다 - MainWindow.xaml.cs 가 실행 파일 경로 문자열
-         치환("...Core"→"...Application")으로 Application.exe 를 찾는데, 그건
-         C# 네임스페이스가 아니라 exe 파일명 기준이라 네임스페이스 개명과는 별개다. -->
     <AssemblyName>GVA.HMI.Example.Core</AssemblyName>
     <UseWindowsForms>false</UseWindowsForms>
     <EnableDefaultApplicationDefinition>true</EnableDefaultApplicationDefinition>

@@ -1,17 +1,3 @@
-<!--
-    StatusBar : 0, 0 / 1920 x 76 / 라운드 0
-    38px 2줄. 값/라벨 최소 18px.
-
-    "기존에 쓰고 있는 바인딩에 맞춘" 재설계 - 항목 구성 자체를 바꿨다(VEH/MSN/MODE
-    같은 예전 항목은 없다):
-      1줄 : 시간(SystemData.CurrentTime) / 방위각(SystemData.HeadingMil) /
-            커스텀 전시정보(JSON, LoadCustomDisplayData 참고)
-      2줄 : 좌표(SystemData.Coordinate) / 알람(AlarmData.*, 시간+메세지+카운트
-            뱃지, AlarmLevel 로 색이 바뀐다) / 경고·주의·무시 집계
-
-    그룹 사이엔 얇은 Frame 심선(GroupDivider)만 두고, 배경은 Chassis 톤 -
-    PanelBrush(Application 전용)와는 다르다(리디자인 원칙 그대로 유지).
--->
 <UserControl x:Class="HMICore.Views.StatusBarView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -23,8 +9,6 @@
              Width="1920" Height="76">
 
     <UserControl.Resources>
-        <!-- 그룹 내부 항목 간격 28 (8px 그리드의 3.5배 - 24→28, POS 와 같은 이유로
-             전체적으로 살짝 더 여유있게) -->
         <Style x:Key="StatusItemStyle" TargetType="{x:Type StackPanel}">
             <Setter Property="Orientation" Value="Horizontal"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -37,8 +21,6 @@
             <Setter Property="Orientation" Value="Horizontal"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-        <!-- 그룹 구분선 : 짧은 세로 심선, 좌우 20px 여백(16→20, 전반적으로 더
-             여유있게 - "사용 프로그램스럽게" 피드백) -->
         <Style x:Key="GroupDividerStyle" TargetType="{x:Type Border}">
             <Setter Property="Width" Value="1"/>
             <Setter Property="Height" Value="20"/>
@@ -47,10 +29,6 @@
             <Setter Property="Margin" Value="20,0,20,0"/>
         </Style>
 
-        <!-- 알람 시간/메세지 : AlarmData.AlarmLevel 이 "경고"/"주의" 일 때만 색이 바뀐다.
-             시간은 GvaMonoFont, 메세지는 기본 폰트라 서체별 줄 높이가 달라서 나란히
-             두면 세로로 어긋나 보였다 - GvaStyles.xaml 의 StatusLabelStyle 과 같은
-             이유·같은 값(LineHeight 28 + BaselineOffset 22)으로 맞춘다. -->
         <Style x:Key="AlarmLevelTextStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="21"/>
             <Setter Property="LineHeight" Value="28"/>
@@ -68,9 +46,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- 알람 카운트 뱃지 : 작은 필 하나만 심각도 색으로 채운다(배경 전체를 물들이지
-             않는다는 원칙은 유지 - 뱃지처럼 작은 면적만 예외로 허용한다). 텍스트
-             LineHeight 가 26→28 로 커진 것과 맞춰 뱃지도 28 로 키웠다. -->
         <Style x:Key="AlarmBadgeStyle" TargetType="{x:Type Border}">
             <Setter Property="Background" Value="{StaticResource ForegroundOffBrush}"/>
             <Setter Property="CornerRadius" Value="14"/>
@@ -98,7 +73,6 @@
                 <RowDefinition Height="38"/>
             </Grid.RowDefinitions>
 
-            <!-- ── 1줄 : 시간 / 방위각 / 커스텀 전시정보 ── -->
             <Grid Grid.Row="0" Margin="28,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -117,15 +91,9 @@
                     <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.HeadingMil}"/>
                 </StackPanel>
 
-                <!--
-                    커스텀 전시정보 : Key 개수·차지 비율이 JSON(itemWithLayout) 에 따라
-                    바뀌므로 정적 ColumnDefinition 으로는 표현이 안 된다 - CustomItems
-                    가 바뀔 때마다 StatusBarView.xaml.cs 가 이 Grid 의 열을 새로 만든다.
-                -->
                 <Grid x:Name="CustomInfoHost" Grid.Column="3" HorizontalAlignment="Stretch"/>
             </Grid>
 
-            <!-- ── 2줄 : 좌표 / 알람 / 경고·주의·무시 집계 ── -->
             <Border Grid.Row="1" BorderBrush="{StaticResource SeparatorBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="28,0">
                 <Grid.ColumnDefinitions>
@@ -135,8 +103,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- 오른쪽 여백만 기본(28)보다 넓게(36) - "POS 공간 조금 더 여유있게" 피드백,
-                     알람/집계 쪽으로 붙어 보이지 않게 POS 그룹만 더 띄운다. -->
                 <StackPanel Grid.Column="0" Style="{StaticResource StatusItemStyle}" Margin="0,0,36,0">
                     <TextBlock Style="{StaticResource StatusLabelStyle}" Text="POS"/>
                     <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.Coordinate}"/>
@@ -144,13 +110,6 @@
 
                 <Border Grid.Column="1" Style="{StaticResource GroupDividerStyle}"/>
 
-                <!--
-                    알람 : 시간 + 메세지 + 카운트 뱃지. 셋 다 AlarmData.AlarmLevel 로
-                    색이 바뀐다. StackPanel 이 아니라 Grid(Auto/*/Auto) 를 쓰는 이유 -
-                    메세지 길이에 따라 뱃지가 같이 밀리지 않고 항상 이 열의 오른쪽
-                    끝에 고정돼야 한다("뱃지는 우측 고정" 피드백). 메세지는 가운데
-                    * 열을 꽉 채우고 넘치면 말줄임표로 잘린다.
-                -->
                 <Grid Grid.Column="2" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -172,7 +131,6 @@
                     </Border>
                 </Grid>
 
-                <!-- 경고 / 주의 / 무시 집계 -->
                 <StackPanel Grid.Column="3" Style="{StaticResource GroupStyle}">
                     <Border Style="{StaticResource GroupDividerStyle}"/>
                     <StackPanel Style="{StaticResource StatusItemStyle}">
