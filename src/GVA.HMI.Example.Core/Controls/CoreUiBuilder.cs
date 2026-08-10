@@ -11,24 +11,24 @@ public sealed class CoreUiBuilder
     private const double CanvasWidth = 1920;
     private const double CanvasHeight = 1080;
 
-    private const double AppX = 165, AppY = 105, AppWidth = 1590, AppHeight = 915;
+    private const double AppX = 165, AppY = 145, AppWidth = 1590, AppHeight = 875;
     private const double FrameMargin = 4;
     private const double FrameCornerRadius = 14;
 
     private const double StatusBarX = 0, StatusBarY = 0;
 
     private const double RailKeyHeight = 100;
-    private const double RailPitch = 167.2;
-    private const double LeftRailX = 0, LeftRailY = 84, LeftRailWidth = 153;
+    private const double RailPitch = 159.2;
+    private const double LeftRailX = 0, LeftRailY = 124, LeftRailWidth = 153;
     private const int LeftRailCount = 6;
-    private const double RightRailX = 1767, RightRailY = 84, RightRailWidth = 153;
+    private const double RightRailX = 1767, RightRailY = 124, RightRailWidth = 153;
     private const int RightRailCount = 6;
 
     private const double BottomRowX = 33, BottomRowY = 1028;
     private const double BottomKeyWidth = 214, BottomRowHeight = 48, BottomPitch = 234.29;
     private const int BottomRowCount = 8;
 
-    private const double LabelX = 165, LabelY = 79, LabelWidth = 183, LabelHeight = 20, LabelPitch = 201;
+    private const double LabelX = 165, LabelY = 119, LabelWidth = 183, LabelHeight = 20, LabelPitch = 201;
     private const int LabelCount = 8;
 
     private readonly Window _window;

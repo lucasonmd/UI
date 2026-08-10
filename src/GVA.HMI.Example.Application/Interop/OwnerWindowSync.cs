@@ -27,7 +27,7 @@ internal sealed class OwnerWindowSync
     // Core/MainWindow.xaml.cs 의 CanvasWidth/CanvasHeight/AppX/AppY/AppWidth/AppHeight 와 반드시 같아야 한다.
     private const double CanvasWidth = 1920;
     private const double CanvasHeight = 1080;
-    private const double AppX = 165, AppY = 105, AppWidth = 1590, AppHeight = 915;
+    private const double AppX = 165, AppY = 145, AppWidth = 1590, AppHeight = 875;
 
     private const int GwlHwndParent = -8;
     private const uint SwpNoActivate = 0x0010;

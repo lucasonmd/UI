@@ -49,29 +49,28 @@ public partial class StatusBarView : UserControl
                 Width = new GridLength(item.Ratio, GridUnitType.Star),
             });
 
-            var panel = new StackPanel
+            var content = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            if (i > 0)
-            {
-                panel.Children.Add(new Border
-                {
-                    Style = (Style)FindResource("GroupDividerStyle"),
-                });
-            }
-
-            var name = new TextBlock { Style = (Style)FindResource("StatusLabelStyle") };
+            var name = new TextBlock { Style = (Style)FindResource("StatusLabelStyle"), Margin = new Thickness(0, 0, 12, 0) };
             name.SetBinding(TextBlock.TextProperty, new Binding(nameof(CustomStatusItemViewModel.Name)) { Source = item });
 
             var value = new TextBlock { Style = (Style)FindResource("CustomValueStyle") };
             value.SetBinding(TextBlock.TextProperty, new Binding(nameof(CustomStatusItemViewModel.Value)) { Source = item });
             value.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(CustomStatusItemViewModel.ValueBrush)) { Source = item });
 
-            panel.Children.Add(name);
-            panel.Children.Add(value);
+            content.Children.Add(name);
+            content.Children.Add(value);
+
+            var panel = new Border
+            {
+                Style = (Style)FindResource("CustomStatusItemStyle"),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Child = content,
+            };
 
             Grid.SetColumn(panel, i);
             CustomInfoHost.Children.Add(panel);
