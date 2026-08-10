@@ -1,0 +1,14 @@
+<Application x:Class="GVA.HMI.Example.Application.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 순서 고정 : Colors -> Styles (뒤가 앞을 StaticResource 로 참조) -->
+                <ResourceDictionary Source="Themes/GvaColors.xaml"/>
+                <ResourceDictionary Source="Themes/GvaStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

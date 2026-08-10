@@ -1,0 +1,105 @@
+<!--
+    Application 영역 : 165, 105 / 1590 x 915 (규격서 §2)
+    Core 규격의 적용 예시. 전시 카드 라운드 12, 정보전시영역 배경 #191919.
+
+    이제 이 자체가 별도 프로세스(GVA.HMI.Example.Application)다 - MainWindow.xaml 이
+    이 컨트롤 하나를 Viewbox 로 감싸서 보여줄 뿐이고, Core 위에 정확히 겹쳐 앉는
+    로직은 Interop/OwnerWindowSync.cs 에 있다.
+-->
+<UserControl x:Class="GVA.HMI.Example.Application.Views.ApplicationAreaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:GVA.HMI.Example.Application.Converters"
+             xmlns:vm="clr-namespace:GVA.HMI.Example.Application.ViewModels"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=vm:ApplicationViewModel}"
+             Width="1590" Height="915">
+
+    <UserControl.Resources>
+        <conv:SeverityToBrushConverter x:Key="HeroSeverityToBrush" DefaultBrush="White"/>
+        <conv:SeverityToBrushConverter x:Key="RowSeverityToBrush"
+                                       DefaultBrush="{StaticResource ForegroundBrush}"/>
+
+        <!-- 상세 한 줄 : 상단 헤어라인 + 위 여백 9 -->
+        <DataTemplate x:Key="MetricRowTemplate" DataType="{x:Type vm:MetricRow}">
+            <Border BorderBrush="{StaticResource RowSeparatorBrush}" BorderThickness="0,1,0,0"
+                    Margin="0,9,0,0" Padding="0,9,0,0">
+                <Grid>
+                    <TextBlock Style="{StaticResource RowKeyStyle}"
+                               HorizontalAlignment="Left" Text="{Binding Key}"/>
+                    <TextBlock Style="{StaticResource RowValueStyle}"
+                               HorizontalAlignment="Right" Text="{Binding Value}"
+                               Foreground="{Binding Severity, Converter={StaticResource RowSeverityToBrush}}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- 전시 카드 : 테두리 없음, 정보전시영역(#191919) 대 소프트키 영역(void #000) 명도차만으로 구분 -->
+        <DataTemplate x:Key="DisplayGroupTemplate" DataType="{x:Type vm:DisplayGroup}">
+            <Border CornerRadius="{StaticResource CardCornerRadius}"
+                    ClipToBounds="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 전시영역 타이틀바 -->
+                    <Border Grid.Row="0" Background="{StaticResource TitleBarBrush}"
+                            BorderBrush="#80000000" BorderThickness="0,0,0,1"
+                            Padding="18,11">
+                        <Grid>
+                            <TextBlock Style="{StaticResource CardTitleStyle}"
+                                       HorizontalAlignment="Left" Text="{Binding Title}"/>
+                            <TextBlock Style="{StaticResource CardCodeStyle}"
+                                       HorizontalAlignment="Right" Text="{Binding Code}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 정보전시영역 -->
+                    <Border Grid.Row="1" Background="{StaticResource PanelBrush}" Padding="18,20">
+                        <DockPanel LastChildFill="False">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource HeroValueStyle}"
+                                           Text="{Binding HeroValue}"
+                                           Foreground="{Binding HeroSeverity, Converter={StaticResource HeroSeverityToBrush}}"/>
+                                <TextBlock Style="{StaticResource HeroUnitStyle}"
+                                           VerticalAlignment="Bottom" Margin="10,0,0,8"
+                                           Text="{Binding HeroUnit}"/>
+                            </StackPanel>
+
+                            <ItemsControl DockPanel.Dock="Bottom"
+                                          ItemsSource="{Binding Rows}"
+                                          ItemTemplate="{StaticResource MetricRowTemplate}"/>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <!-- 2 x 2, 간격 16 -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ContentControl Grid.Row="0" Grid.Column="0"
+                        Content="{Binding Groups[0]}" ContentTemplate="{StaticResource DisplayGroupTemplate}"/>
+        <ContentControl Grid.Row="0" Grid.Column="2"
+                        Content="{Binding Groups[1]}" ContentTemplate="{StaticResource DisplayGroupTemplate}"/>
+        <ContentControl Grid.Row="2" Grid.Column="0"
+                        Content="{Binding Groups[2]}" ContentTemplate="{StaticResource DisplayGroupTemplate}"/>
+        <ContentControl Grid.Row="2" Grid.Column="2"
+                        Content="{Binding Groups[3]}" ContentTemplate="{StaticResource DisplayGroupTemplate}"/>
+    </Grid>
+</UserControl>

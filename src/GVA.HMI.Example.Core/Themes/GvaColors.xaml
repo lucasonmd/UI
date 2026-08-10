@@ -1,0 +1,168 @@
+<!--
+    GVA HMI Core - 색상 팔레트
+
+    Application(중앙 대시보드)은 별도 프로세스(GVA.HMI.Example.Application)로
+    분리됐다 - PanelColor/TitleBarHi/LoColor/RowSeparatorBrush/CardCornerRadius
+    같은 Application 전용 토큰은 이제 이 파일에 없다(그쪽 프로젝트의
+    Themes/GvaColors.xaml 참고). Warning/Caution/NormalColor, ForegroundColor
+    처럼 Core(StatusBar)도 같이 쓰는 값은 두 프로젝트에 각각 정의돼 있다 -
+    디자인 토큰이 같은 값을 공유할 뿐, 코드/리소스 자체를 공유하진 않는다
+    (완전히 독립된 두 프로세스이므로).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ── 기본 표면 ────────────────────────────────────────────── -->
+    <Color x:Key="VoidColor">#FF000000</Color>
+
+    <!--
+        Chassis : Core 를 감싸는 "장비 패널" 바탕 (StatusBar, 레일 뒤판, 하단 바 뒤판).
+        Application 의 PanelColor(#191919)보다 한 단 어둡게 잡아서, 카드가 패널 위에
+        얹힌 "보호된 캔버스"로 읽히게 한다.
+    -->
+    <Color x:Key="ChassisHiColor">#FF1A1B1E</Color>
+    <Color x:Key="ChassisLoColor">#FF101012</Color>
+
+    <!--
+        Key 표면 : 개별 소프트키. Chassis 보다 살짝 밝게 잡아서 "패널에 박힌 모듈"처럼
+        구획감을 준다. 이전 버전(#333336 시작)보다 전반적으로 어둡고 채도를 뺐다 -
+        플라스틱 키캡이 아니라 가공 금속 패널 느낌.
+    -->
+    <Color x:Key="SurfaceHiColor">#FF232326</Color>
+    <Color x:Key="SurfaceLoColor">#FF1A1A1D</Color>
+    <!-- 순수 검정보다 한 단만 밝게 -> 테두리 없이도 위치를 잃지 않는다 -->
+    <Color x:Key="SurfaceOffColor">#FF141416</Color>
+
+    <!-- ── 전경 ────────────────────────────────────────────────── -->
+    <Color x:Key="ForegroundColor">#FFF2F2F2</Color>
+    <Color x:Key="ForegroundDimColor">#FF8A9096</Color>
+    <Color x:Key="ForegroundOffColor">#FF4E4E52</Color>
+
+    <!--
+        ── 강조 (Selected/Focus 전용, 채도는 여기에만 집중) ──────
+        이전보다 톤을 낮췄다 - "네온 포인트"가 아니라 "차분한 확신"으로 읽히도록.
+    -->
+    <Color x:Key="AccentColor">#FF00C8FF</Color>
+    <Color x:Key="AccentDeepColor">#FF0098D4</Color>
+    <Color x:Key="AccentForegroundColor">#FFEAF9FF</Color>
+    <Color x:Key="SelectedHiColor">#FF0C3A4B</Color>
+    <Color x:Key="SelectedLoColor">#FF082530</Color>
+
+    <!-- ── 상태색 (Warning / Caution / Advisory 예약, Application 도 참조) ── -->
+    <Color x:Key="WarningColor">#FFFF453A</Color>
+    <Color x:Key="CautionColor">#FFFFB300</Color>
+    <Color x:Key="NormalColor">#FF32D74B</Color>
+
+    <!-- ── 헤어라인 : 흰색 7% (버튼 내부 하이라이트 등 미세 용도) ── -->
+    <Color x:Key="HairlineColor">#12FFFFFF</Color>
+    <!-- Frame 심선 : 흰색 12% - 그룹 구분·프레임 등 "구조적" 분리선용, 헤어라인보다 한 단 뚜렷 -->
+    <Color x:Key="FrameSeamColor">#1FFFFFFF</Color>
+
+    <!-- ══ Brushes ═════════════════════════════════════════════ -->
+
+    <SolidColorBrush x:Key="VoidBrush" Color="{StaticResource VoidColor}"/>
+
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}"/>
+    <SolidColorBrush x:Key="ForegroundDimBrush" Color="{StaticResource ForegroundDimColor}"/>
+    <SolidColorBrush x:Key="ForegroundOffBrush" Color="{StaticResource ForegroundOffColor}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="AccentForegroundBrush" Color="{StaticResource AccentForegroundColor}"/>
+
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="CautionBrush" Color="{StaticResource CautionColor}"/>
+    <SolidColorBrush x:Key="NormalBrush" Color="{StaticResource NormalColor}"/>
+
+    <SolidColorBrush x:Key="HairlineBrush" Color="{StaticResource HairlineColor}"/>
+    <SolidColorBrush x:Key="FrameSeamBrush" Color="{StaticResource FrameSeamColor}"/>
+    <SolidColorBrush x:Key="SeparatorBrush" Color="#0FFFFFFF"/>
+
+    <SolidColorBrush x:Key="SurfaceOffBrush" Color="{StaticResource SurfaceOffColor}"/>
+
+    <!--
+        표면 표현 : 세로 그라디언트, 상하 낙차를 작게 잡아 "브러시드 메탈" 정도로만 -
+        규격서에 색상값 1개만 기재해야 하는 경우 SurfaceEnableFlatBrush / SurfaceSelectedFlatBrush 로 교체.
+    -->
+    <LinearGradientBrush x:Key="SurfaceEnableBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource SurfaceHiColor}"/>
+        <GradientStop Offset="1" Color="{StaticResource SurfaceLoColor}"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SurfaceSelectedBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource SelectedHiColor}"/>
+        <GradientStop Offset="1" Color="{StaticResource SelectedLoColor}"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="LabelSelectedBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource AccentColor}"/>
+        <GradientStop Offset="1" Color="{StaticResource AccentDeepColor}"/>
+    </LinearGradientBrush>
+
+    <!-- Chassis 패널 : StatusBar·레일 뒤판·하단 바 뒤판 공용 -->
+    <LinearGradientBrush x:Key="ChassisBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource ChassisHiColor}"/>
+        <GradientStop Offset="1" Color="{StaticResource ChassisLoColor}"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="StatusBarBrush" Color="{StaticResource ChassisHiColor}"/>
+
+    <!--
+        비활성(Disable) 해치 : 대각선 1px, 8px 타일 - "사용 불가"를 은은하게, 언어 없이 표기.
+        8px 그리드에 맞춰 타일 크기를 잡았다.
+    -->
+    <DrawingBrush x:Key="DisabledHatchBrush" TileMode="Tile" Stretch="None"
+                  Viewport="0,0,8,8" ViewportUnits="Absolute" Opacity="0.05">
+        <DrawingBrush.Drawing>
+            <GeometryDrawing>
+                <GeometryDrawing.Geometry>
+                    <PathGeometry>
+                        <PathFigure StartPoint="0,8" IsClosed="False">
+                            <LineSegment Point="8,0"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </GeometryDrawing.Geometry>
+                <GeometryDrawing.Pen>
+                    <Pen Brush="White" Thickness="1"/>
+                </GeometryDrawing.Pen>
+            </GeometryDrawing>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <!-- 단색 대체값 (규격서 §8 - 그라디언트 사용 불가 시) -->
+    <SolidColorBrush x:Key="SurfaceEnableFlatBrush" Color="#FF232326"/>
+    <SolidColorBrush x:Key="SurfaceSelectedFlatBrush" Color="#FF0A2E3A"/>
+    <SolidColorBrush x:Key="LabelSelectedFlatBrush" Color="#FF00B0E8"/>
+
+    <!-- ══ 치수 / 타이포 ═══════════════════════════════════════ -->
+
+    <!-- Malgun Gothic 을 명시적으로 추가 - StatusBar 커스텀 전시정보가 한글(KorName/
+         KorValue)을 표시하게 되면서, 지정 안 하면 시스템이 알아서 대체 폰트로
+         떨어지는데(주로 맑은 고딕) 그 대체가 어디서 끊기는지 예측이 안 돼 숫자·
+         영어·한글이 섞인 한 줄에서 글자 크기/굵기 느낌이 다르게 보였다("조화롭지
+         않다" 피드백). 명시하면 항상 같은 폰트로 렌더링된다. -->
+    <FontFamily x:Key="GvaFont">Segoe UI, Malgun Gothic, Inter, Arial</FontFamily>
+    <FontFamily x:Key="GvaMonoFont">Consolas, Cascadia Mono, Courier New</FontFamily>
+
+    <!--
+        라운드 : 소프트키 6 / 라벨 3 / 전시 카드 12(Application, 불변) / StatusBar 0
+        정밀 가공 패널 느낌을 위해 소프트키 라운드를 10→6, 라벨은 5→3 으로 줄였다
+        (과하게 둥글면 장난감/게임 UI 처럼 보인다).
+    -->
+    <CornerRadius x:Key="SoftKeyCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="SoftKeyHighlightCornerRadius">5,5,0,0</CornerRadius>
+    <!-- 기능영역 라벨(TopLabel) : 20 히트타겟 안의 6px 얇은 트랙 바 라운드 (세련되게 축소, §"세련되게" 피드백) -->
+    <CornerRadius x:Key="FunctionLabelCornerRadius">2</CornerRadius>
+    <!-- TopLabel 트랙 바를 좌/우 반쪽으로 나눈 조각의 라운드 - 바깥쪽만 둥글고
+         가운데(맞닿는 쪽)는 각지게 해서 두 조각이 이어 붙으면 하나의 바처럼 보인다.
+         위 FunctionLabelCornerRadius(2)와 값은 같게 맞춘다. -->
+    <CornerRadius x:Key="TopLabelLeftCornerRadius">2,0,0,2</CornerRadius>
+    <CornerRadius x:Key="TopLabelRightCornerRadius">0,2,2,0</CornerRadius>
+    <CornerRadius x:Key="StatusBarCornerRadius">0</CornerRadius>
+    <!-- Application 을 감싸는 프레임의 라운드 - 카드(12)보다 한 단 크게, 카드를 넉넉히 감싼다 -->
+    <CornerRadius x:Key="FrameCornerRadius">14</CornerRadius>
+
+    <!--
+        버튼에는 테두리를 쓰지 않는다 - 히트 타겟은 배경 명도차로 정의한다.
+        Selected 표시는 글로우가 아니라 3px 솔리드 액센트 엣지 하나로만 한다
+        (과도한 네온 글로우 금지 - 디자인 피드백).
+    -->
+
+</ResourceDictionary>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GVA HMI Core — 1920×1080 실측 레이아웃</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --void:#000000; --status-bg:#191919; --panel-bg:#191919;
+  --title-bg:#2B2B2B; --title-fg:#F2F2F2;
+  --surface-hi:#333336; --surface-lo:#232326; --surface-off:#0F0F11;
+  --hairline:rgba(255,255,255,.07);
+  --accent:#00C8FF; --accent-deep:#0098D4; --accent-fg:#EAF9FF;
+  --sel-hi:#0A4A63; --sel-lo:#06303F;
+  --fg:#F2F2F2; --fg-dim:#8A9096; --fg-off:#4E4E52;
+  --warn:#FF453A; --caut:#FFB300; --ok:#32D74B;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08080A;color:var(--fg);
+  font-family:"Pretendard Variable",Pretendard,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;padding:20px;
+  display:flex;flex-direction:column;align-items:center;gap:22px}
+
+/* 1920×1080 실측 → 뷰어 폭에 맞춰 축소 */
+#wrap{width:min(1240px,100%);position:relative}
+#screen{width:1920px;height:1080px;transform-origin:0 0;background:var(--void);position:relative;
+  font-size:14px;letter-spacing:-.01em}
+
+/* ── 상단 105px : StatusBar(2줄) + 라벨 8개 ── */
+#top{position:absolute;left:0;top:0;width:1920px}
+.statusbar{background:var(--status-bg);border-radius:0;height:76px;
+  display:flex;flex-direction:column;overflow:hidden}
+.sbrow{display:flex;align-items:center;gap:28px;padding:0 24px;height:38px;min-width:0}
+.sbrow+.sbrow{border-top:1px solid rgba(255,255,255,.06)}
+.sb{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.sb b{font-weight:400;color:var(--fg-dim);font-size:13.5px}
+.sb .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14.5px;letter-spacing:-.02em}
+.push{margin-left:auto}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.dot.ok{background:var(--ok);box-shadow:0 0 8px rgba(50,215,75,.55)}
+.msg{display:flex;align-items:center;gap:10px;min-width:0;color:var(--caut);font-size:14.5px}
+.msg svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.msg span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tally{display:flex;align-items:center;gap:13px;white-space:nowrap;
+  font-family:var(--mono);font-size:13px}
+.tally i{font-style:normal;color:var(--fg-dim)}
+.tally .w{color:var(--warn)} .tally .c{color:var(--caut)} .tally .o{color:var(--ok)}
+
+#labels{position:absolute;left:165px;top:84px;width:1590px;
+  display:grid;grid-template-columns:repeat(8,183px);gap:18px}
+.lbl{height:20px;border-radius:5px;border:1px solid transparent}
+.lbl.enable{background:linear-gradient(180deg,var(--surface-hi),var(--surface-lo));
+  border-color:var(--hairline)}
+.lbl.disable{background:var(--surface-off);border-color:rgba(255,255,255,.04)}
+.lbl.selected{background:linear-gradient(180deg,var(--accent),var(--accent-deep));
+  border-color:#7FE4FF;box-shadow:0 0 20px rgba(0,200,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+
+/* ── 좌우 레일 : 141×140, 세로 간격 15 ── */
+.rail{position:absolute;top:0;height:1080px;width:165px}
+#railL{left:0} #railR{left:1755px}
+/* ── 하단 레일 : 223×48 ── */
+#railB{position:absolute;left:0;top:1022px;width:1920px;height:56px}
+
+.key{position:relative;border-radius:10px;border:1px solid var(--hairline);
+  background:linear-gradient(180deg,var(--surface-hi),var(--surface-lo));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);color:var(--fg);
+  font-family:inherit;cursor:default;display:flex}
+.key .id{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--fg-dim)}
+.key svg{fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+
+  .key.side{position:absolute;left:0;width:165px;height:90px;padding:7px 9px 8px;
+    flex-direction:column;align-items:stretch;justify-content:flex-start;gap:2px;border-radius:10px}
+  .krow{display:flex;align-items:center;justify-content:space-between;height:22px;flex:none}
+.key.side .id{position:static;font-size:11.5px;line-height:1}
+.key.side .ico{display:flex;opacity:.92}
+.key.side .lb{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.2;
+    text-align:left;white-space:normal;word-break:keep-all;overflow-wrap:break-word;hyphens:none;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    min-width:0;flex:1;align-self:center;width:100%}
+  .key.bot{position:absolute;top:0;width:214px;height:56px;border-radius:10px;
+    align-items:center;justify-content:center;padding:0 12px}
+  .key.bot .id{position:absolute;top:6px;right:9px}
+  .key.bot .lb{font-size:16px;font-weight:600;letter-spacing:-.01em;text-align:center;
+    white-space:normal;word-break:keep-all;overflow-wrap:break-word;line-height:1.25;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.key.selected{background:linear-gradient(180deg,var(--sel-hi),var(--sel-lo));
+  border-color:var(--accent);color:var(--accent-fg);
+  box-shadow:0 0 24px rgba(0,200,255,.28),inset 0 1px 0 rgba(255,255,255,.14)}
+.key.selected .id{color:var(--accent)}
+.key.selected .ico{opacity:1}
+.key.disable{background:var(--surface-off);border-color:rgba(255,255,255,.045);
+  color:var(--fg-off);box-shadow:none}
+.key.disable .id{color:var(--fg-off)}
+.key.disable .ico{opacity:.6}
+
+/* ── Application 1590×915 @ (165,105) ── */
+#app{position:absolute;left:165px;top:105px;width:1590px;height:915px;
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:16px}
+.group{display:flex;flex-direction:column;border-radius:12px;overflow:hidden;
+  border:1px solid var(--hairline);min-height:0}
+.group h2{background:linear-gradient(180deg,#333336,var(--title-bg));color:var(--title-fg);
+  font-size:15px;font-weight:600;letter-spacing:-.02em;padding:11px 18px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(0,0,0,.5)}
+.group h2 em{font-family:var(--mono);font-style:normal;font-size:12px;
+  color:var(--fg-dim);letter-spacing:.09em}
+.gbody{background:var(--panel-bg);flex:1;padding:20px 18px;display:flex;
+  flex-direction:column;justify-content:space-between;min-height:0}
+.hero{display:flex;align-items:baseline;gap:10px}
+.hero .n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:64px;
+  font-weight:300;letter-spacing:-.05em;line-height:.95;color:#fff}
+.hero .n.caut{color:var(--caut)}
+.hero .u{font-size:16px;color:var(--fg-dim)}
+.rows{display:flex;flex-direction:column;gap:9px}
+.row{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;
+  padding-top:9px;border-top:1px solid rgba(255,255,255,.055)}
+.row .k{color:var(--fg-dim)}
+.row .v{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.v.warn{color:var(--warn)} .v.caut{color:var(--caut)} .v.ok{color:var(--ok)}
+
+/* ── 치수표 ── */
+.spec{width:min(1240px,100%);overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:640px}
+caption{text-align:left;font-size:10.5px;letter-spacing:.16em;color:var(--fg-dim);
+  text-transform:uppercase;padding-bottom:10px}
+th,td{border-bottom:1px solid #1E1E20;padding:9px 10px;text-align:left}
+th{font-size:10px;letter-spacing:.1em;color:var(--fg-dim);text-transform:uppercase;font-weight:600}
+td:first-child{font-weight:600;white-space:nowrap}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+</style></head><body>
+
+<div id="wrap"><div id="screen">
+
+  <div id="top">
+    <div class="statusbar">
+      <div class="sbrow">
+        <div class="sb"><b>차량</b><span class="v">K-000-14</span></div>
+        <div class="sb"><b>임무</b><span class="v">RECON-07</span></div>
+        <div class="sb"><b>모드</b><span class="v">기동</span></div>
+        <div class="sb"><span class="dot ok"></span><span class="v">DDS 14/15</span></div>
+        <div class="sb push"><b>위치</b><span class="v">37.5665 · 126.9780</span></div>
+        <div class="sb"><b>방위</b><span class="v">247°</span></div>
+        <div class="sb"><b>주행</b><span class="v">1 284 km</span></div>
+        <div class="sb"><span class="v">14:07:22</span></div>
+      </div>
+      <div class="sbrow">
+        <div class="msg"><svg viewBox="0 0 24 24"><path d="M12 3.6 21.3 19.7H2.7L12 3.6Z"/><path d="M12 9.9v4.3"/><path d="M12 16.8a0.8 0.8 0 1 1 0 1.6 0.8 0.8 0 0 1 0-1.6Z"/></svg>
+          <span>냉각수 온도 상한 초과 — 104 °C · 14:06:58</span></div>
+        <div class="tally push"><i>경고</i><span class="w">0</span>
+          <i>주의</i><span class="c">1</span><i>정상</i><span class="o">23</span></div>
+        <div class="sb"><b>최근 BIT</b><span class="v">14:02:31</span></div>
+        <div class="sb"><b>전원</b><span class="v">27.8 V</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="labels">
+      <div class="lbl selected"></div>
+      <div class="lbl enable"></div>
+      <div class="lbl enable"></div>
+      <div class="lbl enable"></div>
+      <div class="lbl disable"></div>
+      <div class="lbl enable"></div>
+      <div class="lbl enable"></div>
+      <div class="lbl disable"></div>
+  </div>
+
+  <div class="rail" id="railL">
+      <button class="key side selected" style="top:84.0px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 17.5a8.5 8.5 0 1 1 16 0"/><path d="M12 13.4 16.6 9"/><path d="M12 12.2a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"/></svg></span><span class="id">F1</span></span><span class="lbwrap"><span class="lb">주행</span></span></button>
+      <button class="key side enable" style="top:251.2px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M13.4 2.4 5.7 13.6h5.2l-1.1 8 7.9-11.3h-5.2l0.9-7.9Z"/></svg></span><span class="id">F2</span></span><span class="lbwrap"><span class="lb">동력</span></span></button>
+      <button class="key side enable" style="top:418.4px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4.4 8h12.2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4.4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2Z"/><path d="M20.9 10.8v2.4"/><path d="M5.6 10.6v2.8"/><path d="M8.6 10.6v2.8"/><path d="M11.6 10.6v2.8"/></svg></span><span class="id">F3</span></span><span class="lbwrap"><span class="lb">전원</span></span></button>
+      <button class="key side enable" style="top:585.6px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4.4 10.4a11 11 0 0 1 15.2 0"/><path d="M7.6 13.5a6.6 6.6 0 0 1 8.8 0"/><path d="M12 16.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Z"/></svg></span><span class="id">F4</span></span><span class="lbwrap"><span class="lb">COMMS LINK STATUS 02</span></span></button>
+      <button class="key side disable" style="top:752.8px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 4.6a7.4 7.4 0 1 1 0 14.8 7.4 7.4 0 0 1 0-14.8Z"/><path d="M12 2v3.1"/><path d="M12 18.9V22"/><path d="M2 12h3.1"/><path d="M18.9 12H22"/><path d="M12 11.1a0.9 0.9 0 1 1 0 1.8 0.9 0.9 0 0 1 0-1.8Z"/></svg></span><span class="id">F5</span></span><span class="lbwrap"><span class="lb">무장</span></span></button>
+      <button class="key side enable" style="top:920.0px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M15.6 3.9a5.3 5.3 0 0 0-6.7 6.7l-5.4 5.4a1.9 1.9 0 0 0 0 2.6l1.5 1.5a1.9 1.9 0 0 0 2.6 0l5.4-5.4a5.3 5.3 0 0 0 6.7-6.7l-3.3 3.3-2.6-2.6 3.3-3.3Z"/></svg></span><span class="id">F6</span></span><span class="lbwrap"><span class="lb">정비</span></span></button>
+  </div>
+
+  <div id="app"><section class="group"><h2>동력계통<em>PWR</em></h2><div class="gbody"><div class="hero"><span class="n ">2140</span><span class="u">rpm</span></div><div class="rows"><div class="row"><span class="k">냉각수 온도</span><span class="v caut">104 °C</span></div><div class="row"><span class="k">연료 잔량</span><span class="v ">68 %</span></div><div class="row"><span class="k">오일 압력</span><span class="v ok">4.2 bar</span></div></div></div></section><section class="group"><h2>주행계통<em>DRV</em></h2><div class="gbody"><div class="hero"><span class="n ">42</span><span class="u">km/h</span></div><div class="rows"><div class="row"><span class="k">변속단</span><span class="v ">D3</span></div><div class="row"><span class="k">조향각</span><span class="v ">−7.5 °</span></div><div class="row"><span class="k">제동 압력</span><span class="v ok">정상</span></div></div></div></section><section class="group"><h2>전장/전원<em>ELEC</em></h2><div class="gbody"><div class="hero"><span class="n ">27.8</span><span class="u">V</span></div><div class="rows"><div class="row"><span class="k">발전기 부하</span><span class="v ">63 %</span></div><div class="row"><span class="k">보조 전원</span><span class="v warn">차단</span></div><div class="row"><span class="k">소모 전류</span><span class="v ">118 A</span></div></div></div></section><section class="group"><h2>상태감시<em>BIT</em></h2><div class="gbody"><div class="hero"><span class="n caut">1</span><span class="u">건 주의</span></div><div class="rows"><div class="row"><span class="k">노드 접속</span><span class="v ">14 / 15</span></div><div class="row"><span class="k">최근 BIT</span><span class="v ">14:02:31</span></div><div class="row"><span class="k">기록 용량</span><span class="v ok">41 %</span></div></div></div></section></div>
+
+  <div class="rail" id="railR">
+      <button class="key side enable" style="top:84.0px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3.6 21.3 19.7H2.7L12 3.6Z"/><path d="M12 9.9v4.3"/><path d="M12 16.8a0.8 0.8 0 1 1 0 1.6 0.8 0.8 0 0 1 0-1.6Z"/></svg></span><span class="id">F7</span></span><span class="lbwrap"><span class="lb">경보목록</span></span></button>
+      <button class="key side enable" style="top:251.2px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21.4s7.1-6.6 7.1-11.2a7.1 7.1 0 1 0-14.2 0C4.9 14.8 12 21.4 12 21.4Z"/><path d="M12 7.6a2.6 2.6 0 1 1 0 5.2 2.6 2.6 0 0 1 0-5.2Z"/></svg></span><span class="id">F8</span></span><span class="lbwrap"><span class="lb">지도</span></span></button>
+      <button class="key side disable" style="top:418.4px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4.2 6.6h15.6a1.8 1.8 0 0 1 1.8 1.8v9.3a1.8 1.8 0 0 1-1.8 1.8H4.2a1.8 1.8 0 0 1-1.8-1.8V8.4a1.8 1.8 0 0 1 1.8-1.8Z"/><path d="M9.2 6.6 10.4 4.3h3.2l1.2 2.3"/><path d="M12 9.6a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"/></svg></span><span class="id">F9</span></span><span class="lbwrap"><span class="lb">영상</span></span></button>
+      <button class="key side enable" style="top:585.6px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8.6 6.4h12"/><path d="M8.6 12h12"/><path d="M8.6 17.6h12"/><path d="M4 5.4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/><path d="M4 11a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/><path d="M4 16.6a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg></span><span class="id">F10</span></span><span class="lbwrap"><span class="lb">MISSION DATA LOG</span></span></button>
+      <button class="key side enable" style="top:752.8px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M 10.33 2.85 L 13.67 2.85 L 13.80 5.13 L 15.58 5.87 L 17.29 4.35 L 19.65 6.71 L 18.13 8.42 L 18.87 10.20 L 21.15 10.33 L 21.15 13.67 L 18.87 13.80 L 18.13 15.58 L 19.65 17.29 L 17.29 19.65 L 15.58 18.13 L 13.80 18.87 L 13.67 21.15 L 10.33 21.15 L 10.20 18.87 L 8.42 18.13 L 6.71 19.65 L 4.35 17.29 L 5.87 15.58 L 5.13 13.80 L 2.85 13.67 L 2.85 10.33 L 5.13 10.20 L 5.87 8.42 L 4.35 6.71 L 6.71 4.35 L 8.42 5.87 L 10.20 5.13 Z"/><path d="M12 8.6a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8Z"/></svg></span><span class="id">F11</span></span><span class="lbwrap"><span class="lb">설정</span></span></button>
+      <button class="key side disable" style="top:920.0px"><span class="krow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Z"/><path d="M7.8 12.2 10.7 15.1 16.2 9.2"/></svg></span><span class="id">F12</span></span><span class="lbwrap"><span class="lb">시험</span></span></button>
+  </div>
+
+  <div id="railB">
+      <button class="key bot enable" style="left:33.0px"><span class="id">F13</span><span class="lb">개요</span></button>
+      <button class="key bot selected" style="left:267.29px"><span class="id">F14</span><span class="lb">상세</span></button>
+      <button class="key bot enable" style="left:501.57px"><span class="id">F15</span><span class="lb">추이</span></button>
+      <button class="key bot enable" style="left:735.86px"><span class="id">F16</span><span class="lb">비교</span></button>
+      <button class="key bot disable" style="left:970.14px"><span class="id">F17</span><span class="lb">보정</span></button>
+      <button class="key bot enable" style="left:1204.43px"><span class="id">F18</span><span class="lb">밝기</span></button>
+      <button class="key bot enable" style="left:1438.71px"><span class="id">F19</span><span class="lb">이전</span></button>
+      <button class="key bot enable" style="left:1673.0px"><span class="id">F20</span><span class="lb">복귀</span></button>
+  </div>
+
+</div></div>
+
+<div class="spec">
+<table>
+  <caption>Core 영역 실측 치수 — 1920 × 1080</caption>
+  <thead><tr><th>영역</th><th>위치 (X, Y)</th><th>크기</th><th>간격 / 비고</th></tr></thead>
+  <tbody>
+    <tr><td>Application</td><td class="num">165, 105</td><td class="num">1590 × 915</td><td>가로 중앙, Top 세로중앙 +22.5</td></tr>
+    <tr><td>StatusBar</td><td class="num">0, 0</td><td class="num">1920 × 76</td><td>화면 전폭 · 38px 2줄</td></tr>
+    <tr><td>기능영역 라벨 ×8</td><td class="num">165, 84</td><td class="num">183 × 20</td><td>간격 18 · App 폭에 정렬</td></tr>
+    <tr><td>F1~F6 (좌)</td><td class="num">0, 84</td><td class="num">165 × 90</td><td>피치 167.2 · F6 끝 1010</td></tr>
+    <tr><td>F7~F12 (우)</td><td class="num">1755, 84</td><td class="num">165 × 90</td><td>피치 167.2 · F12 끝 1010</td></tr>
+    <tr><td>F13~F20 (하)</td><td class="num">33, 1022</td><td class="num">214 × 56</td><td>HW 160×56 중심 유지 · 피치 234.29</td></tr>
+    <tr><td>좌우 Top</td><td class="num">—</td><td class="num" colspan="2">84 · 251.2 · 418.4 · 585.6 · 752.8 · 920 &nbsp;(끝 1010 · HW 대비 최대 −10)</td></tr>
+    <tr><td>하단 Left</td><td class="num">—</td><td class="num" colspan="2">33 · 267.3 · 501.6 · 735.9 · 970.1 · 1204.4 · 1438.7 · 1673 &nbsp;(끝 1887)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<script>
+function fit(){
+  const w = document.getElementById('wrap');
+  const s = w.clientWidth / 1920;
+  const sc = document.getElementById('screen');
+  sc.style.transform = 'scale(' + s + ')';
+  w.style.height = (1080 * s) + 'px';
+}
+window.addEventListener('resize', fit); fit();
+</script>
+</body></html>
