@@ -31,16 +31,22 @@
     </Style>
 
     <!-- StatusBar 라벨/값 - 18px 이 "너무 작다" 피드백으로 21px 로 올렸다.
-         38px 행 안에서 여전히 여유 있게 들어간다. LineHeight 를 셋 다 똑같이
-         고정해서(AlarmLevelTextStyle 과 동일한 26) 서로 다른 폰트/굵기를 나란히
-         둬도 줄 높이가 안 어긋난다(CharacterSpacing 으로 자간을 벌리려 했으나
-         이 WPF 런타임엔 그런 속성이 없어 뺐다). 값은 SemiBold 로 SoftButton
-         라벨과 무게감을 맞췄다. -->
+         38px 행 안에서 여전히 여유 있게 들어간다.
+
+         "POS 랑 POS 값 높이가 안 맞다" 실측 원인 : FormattedText 로 재봤더니 21px
+         에서 Segoe UI 의 자연 줄높이는 27.93px(베이스라인 22.66) 인데 Consolas 는
+         24.59px(베이스라인 19.32) 다 - 예전에 LineHeight 를 26 으로 고정했더니
+         프로포셔널 폰트(라벨) 쪽 자연 줄높이(27.93)보다 오히려 작아서 눌리고,
+         두 폰트가 26px 박스 안에서 서로 다른 비율로 베이스라인을 잡아 미세하게
+         어긋났다. LineHeight 를 28(두 폰트 자연 줄높이보다 확실히 크게)로 올리고,
+         BaselineOffset 을 모든 스타일에 똑같이 22 로 못박아서 폰트가 달라도
+         베이스라인이 완전히 일치하게 만든다. -->
     <Style x:Key="StatusLabelStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="21"/>
         <Setter Property="FontWeight" Value="Normal"/>
-        <Setter Property="LineHeight" Value="26"/>
+        <Setter Property="LineHeight" Value="28"/>
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        <Setter Property="BaselineOffset" Value="22"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundDimBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
@@ -48,15 +54,17 @@
     <!-- 값 : 숫자/시각(시간·좌표·방위각)처럼 자릿수가 고정된 데이터만 mono 를 쓴다 -
          커스텀 전시정보처럼 임의의 한글/영문 단어가 오는 값은 CustomValueStyle(비-mono)
          을 대신 쓴다(mono 폰트엔 한글 글리프가 없어서 자동 대체 폰트로 튀어
-         "숫자·영어·한글이 다 다른 느낌" 이 났었다). -->
+         "숫자·영어·한글이 다 다른 느낌" 이 났었다). 라벨과의 간격 8→12 : "POS 공간
+         조금 더 여유있게" 피드백. -->
     <Style x:Key="StatusValueStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
         <Setter Property="FontFamily" Value="{StaticResource GvaMonoFont}"/>
         <Setter Property="FontSize" Value="21"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="LineHeight" Value="26"/>
+        <Setter Property="LineHeight" Value="28"/>
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        <Setter Property="BaselineOffset" Value="22"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Margin" Value="8,0,0,0"/>
+        <Setter Property="Margin" Value="12,0,0,0"/>
     </Style>
 
     <!-- 커스텀 전시정보 값 전용 - StatusValueStyle 과 크기·굵기는 같지만 mono 가
@@ -64,18 +72,20 @@
     <Style x:Key="CustomValueStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="21"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="LineHeight" Value="26"/>
+        <Setter Property="LineHeight" Value="28"/>
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        <Setter Property="BaselineOffset" Value="22"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Margin" Value="8,0,0,0"/>
+        <Setter Property="Margin" Value="12,0,0,0"/>
     </Style>
 
     <Style x:Key="TallyStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
         <Setter Property="FontFamily" Value="{StaticResource GvaMonoFont}"/>
         <Setter Property="FontSize" Value="21"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="LineHeight" Value="26"/>
+        <Setter Property="LineHeight" Value="28"/>
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        <Setter Property="BaselineOffset" Value="22"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
@@ -150,6 +160,15 @@
                                 VerticalAlignment="Stretch"
                                 IsHitTestVisible="False"/>
 
+                        <!-- 하단 1px 검정 각인선(14%) - 상단 Highlight 와 대칭. 눌려 있는
+                             물리 버튼처럼 바닥 모서리를 살짝 죽인다(글로우 아님, 순수 베벨). -->
+                        <Border x:Name="Engrave"
+                                BorderBrush="{StaticResource EngraveBrush}"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="{StaticResource SoftKeyCornerRadius}"
+                                VerticalAlignment="Stretch"
+                                IsHitTestVisible="False"/>
+
                         <!--
                             Selected 액센트 엣지 : 글로우 대신 좌측 3px 솔리드 바 하나로만 강조한다.
                             블러/이펙트가 전혀 없으므로 텍스트가 흐려질 일도 없다.
@@ -192,6 +211,7 @@
                             <Setter TargetName="Root" Property="Background" Value="{StaticResource SurfaceOffBrush}"/>
                             <Setter TargetName="KeyIdText" Property="Foreground" Value="{StaticResource ForegroundOffBrush}"/>
                             <Setter TargetName="Highlight" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="Engrave" Property="Visibility" Value="Collapsed"/>
                             <Setter TargetName="DisabledHatch" Property="Visibility" Value="Visible"/>
                             <Setter Property="Foreground" Value="{StaticResource ForegroundOffBrush}"/>
                         </Trigger>
@@ -288,6 +308,14 @@
                                 VerticalAlignment="Stretch"
                                 IsHitTestVisible="False"/>
 
+                        <!-- 하단 각인선 - 좌측 레일과 동일 -->
+                        <Border x:Name="Engrave"
+                                BorderBrush="{StaticResource EngraveBrush}"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="{StaticResource SoftKeyCornerRadius}"
+                                VerticalAlignment="Stretch"
+                                IsHitTestVisible="False"/>
+
                         <!-- Selected 액센트 엣지 : 우측 (좌측 레일과의 유일한 차이 2) -->
                         <Border x:Name="AccentEdge"
                                 Width="3" HorizontalAlignment="Right"
@@ -321,6 +349,7 @@
                             <Setter TargetName="Root" Property="Background" Value="{StaticResource SurfaceOffBrush}"/>
                             <Setter TargetName="KeyIdText" Property="Foreground" Value="{StaticResource ForegroundOffBrush}"/>
                             <Setter TargetName="Highlight" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="Engrave" Property="Visibility" Value="Collapsed"/>
                             <Setter TargetName="DisabledHatch" Property="Visibility" Value="Visible"/>
                             <Setter Property="Foreground" Value="{StaticResource ForegroundOffBrush}"/>
                         </Trigger>
@@ -410,6 +439,13 @@
                                 CornerRadius="{StaticResource SoftKeyHighlightCornerRadius}"
                                 IsHitTestVisible="False"/>
 
+                        <!-- 하단 각인선 - 좌/우 레일과 동일한 베벨 -->
+                        <Border x:Name="Engrave"
+                                BorderBrush="{StaticResource EngraveBrush}"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="{StaticResource SoftKeyCornerRadius}"
+                                IsHitTestVisible="False"/>
+
                         <!-- Selected 액센트 엣지 : 상단 3px 솔리드 바. 하단 열이라 위쪽에 배치한다 -->
                         <Border x:Name="AccentEdge"
                                 Height="3" VerticalAlignment="Top"
@@ -443,6 +479,7 @@
                             <Setter TargetName="Root" Property="Background" Value="{StaticResource SurfaceOffBrush}"/>
                             <Setter TargetName="KeyIdText" Property="Foreground" Value="{StaticResource ForegroundOffBrush}"/>
                             <Setter TargetName="Highlight" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="Engrave" Property="Visibility" Value="Collapsed"/>
                             <Setter TargetName="DisabledHatch" Property="Visibility" Value="Visible"/>
                             <Setter Property="Foreground" Value="{StaticResource ForegroundOffBrush}"/>
                         </Trigger>

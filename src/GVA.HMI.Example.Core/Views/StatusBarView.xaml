@@ -23,11 +23,12 @@
              Width="1920" Height="76">
 
     <UserControl.Resources>
-        <!-- 그룹 내부 항목 간격 24 (8px 그리드의 3배) -->
+        <!-- 그룹 내부 항목 간격 28 (8px 그리드의 3.5배 - 24→28, POS 와 같은 이유로
+             전체적으로 살짝 더 여유있게) -->
         <Style x:Key="StatusItemStyle" TargetType="{x:Type StackPanel}">
             <Setter Property="Orientation" Value="Horizontal"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,24,0"/>
+            <Setter Property="Margin" Value="0,0,28,0"/>
         </Style>
         <Style x:Key="StatusItemLastStyle" BasedOn="{StaticResource StatusItemStyle}" TargetType="{x:Type StackPanel}">
             <Setter Property="Margin" Value="0"/>
@@ -36,22 +37,25 @@
             <Setter Property="Orientation" Value="Horizontal"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-        <!-- 그룹 구분선 : 짧은 세로 심선, 좌우 16px 여백 -->
+        <!-- 그룹 구분선 : 짧은 세로 심선, 좌우 20px 여백(16→20, 전반적으로 더
+             여유있게 - "사용 프로그램스럽게" 피드백) -->
         <Style x:Key="GroupDividerStyle" TargetType="{x:Type Border}">
             <Setter Property="Width" Value="1"/>
             <Setter Property="Height" Value="20"/>
             <Setter Property="Background" Value="{StaticResource FrameSeamBrush}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="16,0,16,0"/>
+            <Setter Property="Margin" Value="20,0,20,0"/>
         </Style>
 
         <!-- 알람 시간/메세지 : AlarmData.AlarmLevel 이 "경고"/"주의" 일 때만 색이 바뀐다.
              시간은 GvaMonoFont, 메세지는 기본 폰트라 서체별 줄 높이가 달라서 나란히
-             두면 세로로 어긋나 보였다 - LineHeight 를 강제로 고정해서 맞춘다. -->
+             두면 세로로 어긋나 보였다 - GvaStyles.xaml 의 StatusLabelStyle 과 같은
+             이유·같은 값(LineHeight 28 + BaselineOffset 22)으로 맞춘다. -->
         <Style x:Key="AlarmLevelTextStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="21"/>
-            <Setter Property="LineHeight" Value="26"/>
+            <Setter Property="LineHeight" Value="28"/>
             <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+            <Setter Property="BaselineOffset" Value="22"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
             <Style.Triggers>
@@ -65,13 +69,14 @@
         </Style>
 
         <!-- 알람 카운트 뱃지 : 작은 필 하나만 심각도 색으로 채운다(배경 전체를 물들이지
-             않는다는 원칙은 유지 - 뱃지처럼 작은 면적만 예외로 허용한다). -->
+             않는다는 원칙은 유지 - 뱃지처럼 작은 면적만 예외로 허용한다). 텍스트
+             LineHeight 가 26→28 로 커진 것과 맞춰 뱃지도 28 로 키웠다. -->
         <Style x:Key="AlarmBadgeStyle" TargetType="{x:Type Border}">
             <Setter Property="Background" Value="{StaticResource ForegroundOffBrush}"/>
-            <Setter Property="CornerRadius" Value="13"/>
-            <Setter Property="MinWidth" Value="26"/>
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="Padding" Value="7,0"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="8,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding AlarmData.AlarmLevel}" Value="경고">
@@ -94,7 +99,7 @@
             </Grid.RowDefinitions>
 
             <!-- ── 1줄 : 시간 / 방위각 / 커스텀 전시정보 ── -->
-            <Grid Grid.Row="0" Margin="24,0">
+            <Grid Grid.Row="0" Margin="28,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -122,7 +127,7 @@
 
             <!-- ── 2줄 : 좌표 / 알람 / 경고·주의·무시 집계 ── -->
             <Border Grid.Row="1" BorderBrush="{StaticResource SeparatorBrush}" BorderThickness="0,1,0,0">
-            <Grid Margin="24,0">
+            <Grid Margin="28,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -130,7 +135,9 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Style="{StaticResource StatusItemStyle}">
+                <!-- 오른쪽 여백만 기본(28)보다 넓게(36) - "POS 공간 조금 더 여유있게" 피드백,
+                     알람/집계 쪽으로 붙어 보이지 않게 POS 그룹만 더 띄운다. -->
+                <StackPanel Grid.Column="0" Style="{StaticResource StatusItemStyle}" Margin="0,0,36,0">
                     <TextBlock Style="{StaticResource StatusLabelStyle}" Text="POS"/>
                     <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.Coordinate}"/>
                 </StackPanel>

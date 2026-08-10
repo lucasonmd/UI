@@ -102,7 +102,18 @@
         <GradientStop Offset="0" Color="{StaticResource ChassisHiColor}"/>
         <GradientStop Offset="1" Color="{StaticResource ChassisLoColor}"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="StatusBarBrush" Color="{StaticResource ChassisHiColor}"/>
+    <!-- StatusBar 도 레일/하단 바와 같은 ChassisBrush(그라디언트)를 쓴다 - 예전엔
+         단색이라 레일만 "가공 금속" 느낌이고 StatusBar 는 밋밋한 판때기처럼 붕 떠
+         보였다("사용 프로그램스럽지 않다" 피드백의 일부 원인). -->
+    <LinearGradientBrush x:Key="StatusBarBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource ChassisHiColor}"/>
+        <GradientStop Offset="1" Color="{StaticResource ChassisLoColor}"/>
+    </LinearGradientBrush>
+
+    <!-- 소프트키 하단 그림자 : 상단 Highlight(흰 7%)와 대칭인 "각인" 표현 - 검정 14%
+         한 줄로 바닥 쪽을 살짝 죽여서 눌려있는 물리 버튼처럼 보이게 한다. -->
+    <Color x:Key="EngraveColor">#24000000</Color>
+    <SolidColorBrush x:Key="EngraveBrush" Color="{StaticResource EngraveColor}"/>
 
     <!--
         비활성(Disable) 해치 : 대각선 1px, 8px 타일 - "사용 불가"를 은은하게, 언어 없이 표기.
