@@ -68,7 +68,7 @@ public partial class StatusBarView : UserControl
             var panel = new Border
             {
                 Style = (Style)FindResource("CustomStatusItemStyle"),
-                HorizontalAlignment = HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Right,
                 Child = content,
             };
 
