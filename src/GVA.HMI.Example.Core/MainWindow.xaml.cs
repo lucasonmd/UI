@@ -116,8 +116,6 @@ public partial class MainWindow : Window
     {
         var ownerHwnd = new WindowInteropHelper(this).Handle;
 
-        HwndSource.FromHwnd(ownerHwnd)?.AddHook(WndProc);
-
         var corePath = Process.GetCurrentProcess().MainModule?.FileName;
         if (string.IsNullOrEmpty(corePath))
         {
@@ -209,17 +207,5 @@ public partial class MainWindow : Window
         WindowState = WindowState == WindowState.Maximized
             ? WindowState.Normal
             : WindowState.Maximized;
-    }
-
-    private const int WM_NCCALCSIZE = 0x0083;
-
-    private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        if (msg == WM_NCCALCSIZE && wParam != IntPtr.Zero)
-        {
-            handled = true;
-        }
-
-        return IntPtr.Zero;
     }
 }

@@ -10,7 +10,7 @@ public partial class MainWindow : Window
     // 같아야 한다 - 단독 실행(디버그) 모드의 기본 창 크기로만 쓰인다(Core 가
     // 실행한 정상 경로에서는 OwnerWindowSync 가 실시간으로 크기를 다시 잡는다).
     private const double DefaultWidth = 1590;
-    private const double DefaultHeight = 875;
+    private const double DefaultHeight = 915;
 
     private OwnerWindowSync? _sync;
 
