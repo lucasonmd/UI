@@ -55,10 +55,28 @@
         <GradientStop Offset="1" Color="{StaticResource SelectedLoColor}"/>
     </LinearGradientBrush>
 
+    <!-- 선택 : 윗변에 거의 흰 청록을 얹어 "불이 들어온 램프"로 만든다. 평균 휘도만
+         올리는 것보다 이 하이라이트 한 줄이 선택 여부를 훨씬 즉각적으로 읽히게 한다.
+         활성(중성 회색)과는 채도로도 갈리므로 색상·휘도 두 축에서 모두 앞선다. -->
     <LinearGradientBrush x:Key="LabelSelectedBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Offset="0" Color="{StaticResource AccentColor}"/>
-        <GradientStop Offset="1" Color="{StaticResource AccentDeepColor}"/>
+        <GradientStop Offset="0" Color="#FFCFF6FF"/>
+        <GradientStop Offset="0.35" Color="#FF22D4FF"/>
+        <GradientStop Offset="1" Color="#FF00A8E4"/>
     </LinearGradientBrush>
+
+    <!-- 활성 : 평균 휘도를 올리면 선택과 다시 붙어버린다. 대신 윗변 하이라이트를
+         좁고(상단 20%) 밝게 몰아 스페큘러처럼 만들고 아랫변을 더 깊게 떨어뜨린다 -
+         평균은 그대로인데 "빛을 받는 물체"로 읽혀 훨씬 살아 보인다.
+         완전 무채색은 죽은 금속처럼 보여서 아주 약한 쿨 틴트(R<G<B)를 준다. -->
+    <LinearGradientBrush x:Key="LabelEnabledBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#FFCEDCE8"/>
+        <GradientStop Offset="0.2" Color="#FF8C9AA8"/>
+        <GradientStop Offset="1" Color="#FF4E5C6A"/>
+    </LinearGradientBrush>
+    <!-- 비활성 : 조명 구조를 아예 빼고(그라데이션 없음) 평면으로 둔다 - 위아래 명암이
+         없으면 그 자체로 "꺼진 것"처럼 읽힌다. 다만 검은 캔버스 위 6px 띠라 SoftButton
+         의 판(#141416)을 그대로 쓰면 사라지므로, 형태는 남을 만큼만 밝기를 준다. -->
+    <SolidColorBrush x:Key="LabelDisabledBrush" Color="#FF34373B"/>
 
     <LinearGradientBrush x:Key="ChassisBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Offset="0" Color="{StaticResource ChassisHiColor}"/>

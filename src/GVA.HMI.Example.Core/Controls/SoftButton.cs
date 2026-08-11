@@ -59,3 +59,11 @@ public class SoftButton : ButtonBase
         base.OnClick();
     }
 }
+
+public enum SoftButtonState
+{
+    SoftButtonHidden,
+    SoftButtonEnabled,
+    SoftButtonDisabled,
+    SoftButtonSelected,
+}

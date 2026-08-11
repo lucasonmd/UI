@@ -1,41 +1,121 @@
+<!--
+    Core 상태 밴드.
+
+    표면 구성 원칙: 필드 하나하나를 떠 있는 카드로 만들지 않는다. 바 전체가 하나로
+    이어진 가공면이고, 그 위를 기능별 "존"으로만 나눈다.
+      - 존 = 배경 톤 차이(들린 면 / 파인 면)로 구분. 존 경계에만 1px 심(seam).
+      - 존 안의 개별 필드 = 아주 옅은 세로 헤어라인 하나로만 구분. 테두리·배경 없음.
+      - 모서리 반경 0, 존이 행 높이를 꽉 채워 바가 끊겨 보이지 않게 한다.
+    기존 SystemData.* / AlarmData.* / CustomItems 바인딩과 표시 순서는 그대로다.
+-->
 <UserControl x:Class="HMICore.Views.StatusBarView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:HMICore.ViewModels"
-             mc:Ignorable="d"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:StatusBarViewModel}"
              Width="1920" Height="76">
 
     <UserControl.Resources>
-        <Style x:Key="StatusItemStyle" TargetType="{x:Type StackPanel}">
-            <Setter Property="Orientation" Value="Horizontal"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,28,0"/>
+        <!-- ===== 표면 레이어 ===== -->
+        <!-- 들린 면: 기준 정보(TIME/HDG, POS, 집계)가 앉는 자리. -->
+        <LinearGradientBrush x:Key="ZoneSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#FF191A1E"/>
+            <GradientStop Offset="1" Color="#FF141519"/>
+        </LinearGradientBrush>
+        <!-- 파인 면: 내용이 실리는 자리(커스텀 전시, 알람). 윗변이 더 어두워 파여 보인다. -->
+        <LinearGradientBrush x:Key="ZoneWellBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#FF0B0C0F"/>
+            <GradientStop Offset="0.35" Color="#FF0F1013"/>
+            <GradientStop Offset="1" Color="#FF111215"/>
+        </LinearGradientBrush>
+
+        <SolidColorBrush x:Key="ZoneSeamBrush" Color="#FF07080A"/>
+        <SolidColorBrush x:Key="ZoneEdgeLightBrush" Color="#1AFFFFFF"/>
+        <SolidColorBrush x:Key="FieldDividerBrush" Color="#14FFFFFF"/>
+        <SolidColorBrush x:Key="LabelBrush" Color="#FF98A0A8"/>
+
+        <!-- ===== 존 ===== -->
+        <Style x:Key="ZoneSurfaceStyle" TargetType="{x:Type Border}">
+            <Setter Property="Background" Value="{StaticResource ZoneSurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ZoneEdgeLightBrush}"/>
+            <Setter Property="BorderThickness" Value="0,1,0,0"/>
+            <Setter Property="Padding" Value="14,0"/>
         </Style>
-        <Style x:Key="StatusItemLastStyle" BasedOn="{StaticResource StatusItemStyle}" TargetType="{x:Type StackPanel}">
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style x:Key="GroupStyle" TargetType="{x:Type StackPanel}">
-            <Setter Property="Orientation" Value="Horizontal"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="GroupDividerStyle" TargetType="{x:Type Border}">
-            <Setter Property="Width" Value="1"/>
-            <Setter Property="Height" Value="20"/>
-            <Setter Property="Background" Value="{StaticResource FrameSeamBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="20,0,20,0"/>
+        <Style x:Key="ZoneWellStyle" TargetType="{x:Type Border}">
+            <Setter Property="Background" Value="{StaticResource ZoneWellBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ZoneSeamBrush}"/>
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+            <Setter Property="Padding" Value="0"/>
         </Style>
 
-        <Style x:Key="AlarmLevelTextStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="21"/>
+        <!--
+            존 안에서 필드끼리 나누는 유일한 장치. 행 높이보다 짧게 잘라 선이 튀지 않게 한다.
+            UseLayoutRounding 은 여기서만 켠다 - 비율(star) 열 경계가 소수점이라 1px 선이
+            두 픽셀에 걸쳐 번지면서 선마다 밝기가 달라진다. 이 컨트롤엔 CornerRadius 가
+            없으므로 프로젝트가 라운딩을 끈 이유(모서리 깨짐)에 걸리지 않는다.
+        -->
+        <Style x:Key="FieldDividerStyle" TargetType="{x:Type Border}">
+            <Setter Property="Width" Value="1"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Background" Value="{StaticResource FieldDividerBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="18,0"/>
+            <Setter Property="UseLayoutRounding" Value="True"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+
+        <!-- ===== 타이포그래피 ===== -->
+        <!--
+            라벨은 작고 어둡게, 값은 크고 밝게 - 계층은 이 대비가 만든다.
+            모노(Consolas)를 쓰지 않으므로 숫자 폭은 OpenType tnum 으로 고정한다.
+            이게 없으면 매초 바뀌는 시계 숫자 폭이 달라져 글자가 좌우로 떨린다.
+        -->
+        <Style x:Key="StatusLabelStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="LineHeight" Value="28"/>
             <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
-            <Setter Property="BaselineOffset" Value="22"/>
+            <Setter Property="BaselineOffset" Value="21"/>
+            <Setter Property="Foreground" Value="{StaticResource LabelBrush}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        </Style>
+        <Style x:Key="StatusValueStyle" BasedOn="{StaticResource GvaTextBase}" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="{StaticResource GvaFont}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Typography.NumeralAlignment" Value="Tabular"/>
+            <Setter Property="LineHeight" Value="28"/>
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+            <Setter Property="BaselineOffset" Value="21"/>
+            <Setter Property="Foreground" Value="#FFDCE1E6"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="CustomValueStyle" BasedOn="{StaticResource StatusValueStyle}" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+        <Style x:Key="TallyStyle" BasedOn="{StaticResource StatusValueStyle}" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="19"/>
+        </Style>
+
+        <!-- ===== 알람 ===== -->
+        <!-- 경보 등급은 왼쪽 3px 세로선 하나로만 알린다(글로우·배경색 없음). -->
+        <Style x:Key="AlertAccentStyle" TargetType="{x:Type Border}">
+            <Setter Property="BorderThickness" Value="3,0,0,0"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ForegroundOffBrush}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding AlarmData.AlarmLevel}" Value="경고">
+                    <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding AlarmData.AlarmLevel}" Value="주의">
+                    <Setter Property="BorderBrush" Value="{StaticResource CautionBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="AlarmTextStyle" BasedOn="{StaticResource StatusValueStyle}" TargetType="{x:Type TextBlock}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding AlarmData.AlarmLevel}" Value="경고">
                     <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
@@ -45,13 +125,12 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-
         <Style x:Key="AlarmBadgeStyle" TargetType="{x:Type Border}">
+            <Setter Property="MinWidth" Value="26"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Padding" Value="7,0"/>
+            <Setter Property="CornerRadius" Value="1"/>
             <Setter Property="Background" Value="{StaticResource ForegroundOffBrush}"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="MinWidth" Value="28"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="Padding" Value="8,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding AlarmData.AlarmLevel}" Value="경고">
@@ -62,98 +141,130 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <!-- 집계 세 칸은 폭을 맞춰 숫자가 같은 위치에서 읽히게 한다. -->
+        <Style x:Key="TallyCellStyle" TargetType="{x:Type Grid}">
+            <Setter Property="Width" Value="96"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
     </UserControl.Resources>
 
-    <Border Background="{StaticResource StatusBarBrush}"
-            CornerRadius="{StaticResource StatusBarCornerRadius}"
-            ClipToBounds="True">
+    <Border BorderBrush="{StaticResource HairlineBrush}" BorderThickness="0,1,0,1" ClipToBounds="True">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="38"/>
                 <RowDefinition Height="38"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="28,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0" Style="{StaticResource StatusValueStyle}" Margin="0"
-                           Text="{Binding SystemData.CurrentTime}"/>
-
-                <Border Grid.Column="1" Style="{StaticResource GroupDividerStyle}"/>
-
-                <StackPanel Grid.Column="2" Style="{StaticResource StatusItemStyle}">
-                    <TextBlock Style="{StaticResource StatusLabelStyle}" Text="HDG"/>
-                    <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.HeadingMil}"/>
-                </StackPanel>
-
-                <Grid x:Name="CustomInfoHost" Grid.Column="3" HorizontalAlignment="Stretch"/>
-            </Grid>
-
-            <Border Grid.Row="1" BorderBrush="{StaticResource SeparatorBrush}" BorderThickness="0,1,0,0">
-            <Grid Margin="28,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Style="{StaticResource StatusItemStyle}" Margin="0,0,36,0">
-                    <TextBlock Style="{StaticResource StatusLabelStyle}" Text="POS"/>
-                    <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.Coordinate}"/>
-                </StackPanel>
-
-                <Border Grid.Column="1" Style="{StaticResource GroupDividerStyle}"/>
-
-                <Grid Grid.Column="2" VerticalAlignment="Center">
+            <!-- ROW 0 : [기준 정보 TIME·HDG] | [커스텀 전시정보] -->
+            <Border Grid.Row="0" BorderBrush="{StaticResource SeparatorBrush}" BorderThickness="0,0,0,1">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:Name="AlarmMessageTime" Grid.Column="0" Style="{StaticResource AlarmLevelTextStyle}"
-                               FontFamily="{StaticResource GvaMonoFont}" Margin="0,0,16,0"
-                               Text="{Binding AlarmData.AlarmTime}"/>
-                    <TextBlock x:Name="AlarmMessageText" Grid.Column="1" Style="{StaticResource AlarmLevelTextStyle}"
-                               Margin="0,0,12,0" TextTrimming="CharacterEllipsis"
-                               Text="{Binding AlarmData.AlarmMessage}"/>
-                    <Border Grid.Column="2" Style="{StaticResource AlarmBadgeStyle}">
-                        <TextBlock Text="{Binding AlarmData.AlarmCount}"
-                                   FontFamily="{StaticResource GvaMonoFont}" FontSize="21"
-                                   FontWeight="SemiBold" Foreground="White"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <!--
+                        윗줄은 TIME/HDG 와 커스텀 전시정보가 같은 들린 면을 공유한다 - 톤이
+                        같으므로 둘 사이 존 심은 없고, 다른 필드와 똑같은 헤어라인 하나로만
+                        나뉜다(맨 끝 구분선). 파인 면은 아랫줄 알람 존에만 쓴다.
+                        HDG 와 첫 커스텀 칸 사이 구분선은 커스텀 존이 자기 열 경계에 직접
+                        그리므로(RebuildCustomInfo), 여기서는 오른쪽 여백 18 만 내준다.
+                    -->
+                    <Border Grid.Column="0" Style="{StaticResource ZoneSurfaceStyle}" Padding="14,0,18,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource StatusLabelStyle}" Text="TIME" Margin="0,0,10,0"/>
+                            <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.CurrentTime}"/>
+                            <Border Style="{StaticResource FieldDividerStyle}"/>
+                            <TextBlock Style="{StaticResource StatusLabelStyle}" Text="HDG" Margin="0,0,10,0"/>
+                            <TextBlock Style="{StaticResource StatusValueStyle}" Text="{Binding SystemData.HeadingMil}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!--
+                        앞 존의 폭이 글자 실측값이라 소수점이다. 그 경계에 앉는 첫 구분선이
+                        번지지 않도록 이 존도 픽셀에 스냅시킨다(CornerRadius 가 없어 안전).
+                    -->
+                    <Border Grid.Column="1" Style="{StaticResource ZoneSurfaceStyle}" Padding="0"
+                            UseLayoutRounding="True" SnapsToDevicePixels="True">
+                        <Grid x:Name="CustomInfoHost" HorizontalAlignment="Stretch"/>
                     </Border>
                 </Grid>
-
-                <StackPanel Grid.Column="3" Style="{StaticResource GroupStyle}">
-                    <Border Style="{StaticResource GroupDividerStyle}"/>
-                    <StackPanel Style="{StaticResource StatusItemStyle}">
-                        <TextBlock Style="{StaticResource TallyStyle}"
-                                   Foreground="{StaticResource ForegroundDimBrush}" Text="WARN"/>
-                        <TextBlock Style="{StaticResource TallyStyle}" Margin="10,0,0,0"
-                                   Foreground="{StaticResource WarningBrush}" Text="{Binding AlarmData.WarningCount}"/>
-                    </StackPanel>
-                    <StackPanel Style="{StaticResource StatusItemStyle}">
-                        <TextBlock Style="{StaticResource TallyStyle}"
-                                   Foreground="{StaticResource ForegroundDimBrush}" Text="CAUT"/>
-                        <TextBlock Style="{StaticResource TallyStyle}" Margin="10,0,0,0"
-                                   Foreground="{StaticResource CautionBrush}" Text="{Binding AlarmData.CautionCount}"/>
-                    </StackPanel>
-                    <StackPanel Style="{StaticResource StatusItemLastStyle}">
-                        <TextBlock Style="{StaticResource TallyStyle}"
-                                   Foreground="{StaticResource ForegroundDimBrush}" Text="IGN"/>
-                        <TextBlock Style="{StaticResource TallyStyle}" Margin="10,0,0,0"
-                                   Foreground="{StaticResource ForegroundDimBrush}" Text="{Binding AlarmData.IgnoreCount}"/>
-                    </StackPanel>
-                </StackPanel>
-            </Grid>
             </Border>
+
+            <!-- ROW 1 : [POS] | [현재 알람] | [집계 WARN·CAUT·IGN] -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!--
+                    POS 는 좌표 문자열 길이가 값에 따라 들쭉날쭉하다. Auto 폭 그대로 두면
+                    좌표가 바뀔 때마다 오른쪽 알람 존이 통째로 밀리므로 MinWidth 로 자리를
+                    먼저 잡아둔다. 남는 공간은 커스텀 항목과 같은 규칙(제목 좌측, 값 우측)으로 쓴다.
+                -->
+                <Border Grid.Column="0" Style="{StaticResource ZoneSurfaceStyle}" MinWidth="330">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Style="{StaticResource StatusLabelStyle}" Text="POS" Margin="0,0,10,0"/>
+                        <TextBlock Grid.Column="1" Style="{StaticResource StatusValueStyle}"
+                                   HorizontalAlignment="Right" Text="{Binding SystemData.Coordinate}"/>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource ZoneWellStyle}">
+                    <Border Style="{StaticResource AlertAccentStyle}">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource StatusLabelStyle}" Text="ALERT" Margin="0,0,12,0"/>
+                            <TextBlock x:Name="AlarmMessageTime" Grid.Column="1" Style="{StaticResource AlarmTextStyle}"
+                                       Margin="0,0,14,0"
+                                       Text="{Binding AlarmData.AlarmTime}"/>
+                            <TextBlock x:Name="AlarmMessageText" Grid.Column="2" Style="{StaticResource AlarmTextStyle}"
+                                       TextTrimming="CharacterEllipsis" Margin="0,0,12,0"
+                                       Text="{Binding AlarmData.AlarmMessage}"/>
+                            <Border Grid.Column="3" Style="{StaticResource AlarmBadgeStyle}">
+                                <TextBlock Text="{Binding AlarmData.AlarmCount}"
+                                           FontFamily="{StaticResource GvaFont}" Typography.NumeralAlignment="Tabular"
+                                           FontSize="15" FontWeight="Medium" Foreground="#FF0A0A0C"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource ZoneSurfaceStyle}">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid Style="{StaticResource TallyCellStyle}">
+                            <TextBlock Style="{StaticResource StatusLabelStyle}" Text="WARN" HorizontalAlignment="Left"/>
+                            <TextBlock Style="{StaticResource TallyStyle}" Text="{Binding AlarmData.WarningCount}"
+                                       Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Border Style="{StaticResource FieldDividerStyle}"/>
+                        <Grid Style="{StaticResource TallyCellStyle}">
+                            <TextBlock Style="{StaticResource StatusLabelStyle}" Text="CAUT" HorizontalAlignment="Left"/>
+                            <TextBlock Style="{StaticResource TallyStyle}" Text="{Binding AlarmData.CautionCount}"
+                                       Foreground="{StaticResource CautionBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Border Style="{StaticResource FieldDividerStyle}"/>
+                        <Grid Style="{StaticResource TallyCellStyle}">
+                            <TextBlock Style="{StaticResource StatusLabelStyle}" Text="IGN" HorizontalAlignment="Left"/>
+                            <TextBlock Style="{StaticResource TallyStyle}" Text="{Binding AlarmData.IgnoreCount}"
+                                       Foreground="{StaticResource LabelBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

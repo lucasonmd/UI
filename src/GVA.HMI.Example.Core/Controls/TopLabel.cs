@@ -41,3 +41,12 @@ public class TopLabel : ButtonBase
         base.OnClick();
     }
 }
+
+public enum T_Button_State
+{
+    LabelStateEnabled,
+    LabelStateDisabled,
+    LabelStateSelected,
+    LabelStateSelectedLeft,
+    LabelStateSeletedRight,
+}

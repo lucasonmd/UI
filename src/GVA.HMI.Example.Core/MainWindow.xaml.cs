@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -9,8 +8,11 @@ namespace HMICore;
 
 public partial class MainWindow : Window
 {
+    // 도려낼 자리. Controls/CoreUiBuilder.cs 의 같은 상수와 값이 반드시 같아야 한다.
+    private const double CanvasWidth = 1920, CanvasHeight = 1080;
+    private const double AppX = 165, AppY = 105, AppWidth = 1590, AppHeight = 915;
+
     private readonly CoreUiBuilder _ui;
-    private Process? _applicationProcess;
 
     public MainWindow()
     {
@@ -20,7 +22,8 @@ public partial class MainWindow : Window
         ApplyPreviewContent();
 
         SourceInitialized += OnSourceInitialized;
-        Closing += OnClosing;
+        // 창 크기가 바뀌면 Viewbox 배율이 바뀌므로 구멍도 다시 뚫어야 한다.
+        SizeChanged += (_, _) => UpdateApplicationCutout();
     }
 
     private void ApplyPreviewContent()
@@ -86,14 +89,24 @@ public partial class MainWindow : Window
         {
           "status_bar": {
             "itemWithLayout": [
-              ["MSN", "임무", "MSN", 0.3],
-              ["OPMODE", "모드", "MODE", 0.35],
-              ["GPS", "위성항법", "GPS", 0.35]
+              ["MSN", "임무", "MSN", 1],
+              ["OPMODE", "모드", "MODE", 1],
+              ["GPS", "항법", "NAV", 1],
+              ["NET", "통신", "NET", 1],
+              ["PWR", "전원", "PWR", 1],
+              ["NBC", "방호", "NBC", 1],
+              ["FUEL", "연료", "FUEL", 1],
+              ["CREW", "승무", "CREW", 1]
             ],
             "itemWithValue": {
-              "MSN": [["RECON", "정찰", "RECON", "#FF32D74B"]],
-              "OPMODE": [["ACTIVE", "활성", "ACTIVE", "#FF00C8FF"]],
-              "GPS": [["FIX3D", "3D 고정", "3D FIX", "#FF32D74B"]]
+              "MSN": [["RECON", "정찰", "RECON", "#FF6FBF80"]],
+              "OPMODE": [["ACTIVE", "활성", "ACTIVE", "#FF5FAECC"]],
+              "GPS": [["FIX3D", "3D고정", "3D FIX", "#FF6FBF80"]],
+              "NET": [["LINKOK", "정상", "LINK OK", "#FF6FBF80"]],
+              "PWR": [["EXT", "외부", "EXT", "#FF5FAECC"]],
+              "NBC": [["CLEAR", "청정", "CLEAR", "#FF6FBF80"]],
+              "FUEL": [["L68", "68%", "68%", "#FFE0A63C"]],
+              "CREW": [["FULL", "4/4", "4/4", "#FF6FBF80"]]
             }
           }
         }
@@ -112,62 +125,50 @@ public partial class MainWindow : Window
         button.SetState(state);
     }
 
-    private void OnSourceInitialized(object? sender, EventArgs e)
+    private void OnSourceInitialized(object? sender, EventArgs e) => UpdateApplicationCutout();
+
+    /// <summary>
+    /// Application 영역(캔버스 기준 <see cref="AppX"/>,<see cref="AppY"/> 에 1590x915)을
+    /// 창에서 아예 도려낸다 - 그 자리로 바탕화면이 그대로 비치고 클릭도 통과한다.
+    ///
+    /// AllowsTransparency 대신 Win32 윈도우 리전을 쓰는 이유 : AllowsTransparency 는
+    /// 창 전체를 소프트웨어 렌더링으로 떨어뜨린다. 1920x1080 전면 UI 에서는 비싸고,
+    /// 여기서 필요한 건 사각형 하나를 뚫는 것뿐이라 리전이 더 싸고 정확하다.
+    ///
+    /// 좌표 계산은 Viewbox(Stretch=Uniform)와 같은 산수를 반복한다 - 균일 축소 +
+    /// 레터박스 중앙정렬. 리전은 물리 픽셀 단위라 DPI 배율을 곱해야 한다.
+    /// </summary>
+    private void UpdateApplicationCutout()
     {
-        var ownerHwnd = new WindowInteropHelper(this).Handle;
-
-        HwndSource.FromHwnd(ownerHwnd)?.AddHook(WndProc);
-
-        var corePath = Process.GetCurrentProcess().MainModule?.FileName;
-        if (string.IsNullOrEmpty(corePath))
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero || !GetClientRect(hwnd, out var client))
         {
             return;
         }
 
-        var appPath = corePath.Replace(
-            "GVA.HMI.Example.Core", "GVA.HMI.Example.Application", StringComparison.Ordinal);
-
-        if (!File.Exists(appPath))
-        {
-            Trace.TraceWarning($"Application.exe 를 찾을 수 없다: {appPath}");
-            return;
-        }
-
-        try
-        {
-            _applicationProcess = Process.Start(new ProcessStartInfo(appPath)
-            {
-                ArgumentList = { $"--owner={ownerHwnd}" },
-                UseShellExecute = false,
-            });
-        }
-        catch (Exception ex)
-        {
-            Trace.TraceError($"Application 프로세스 실행 실패: {ex.Message}");
-        }
-    }
-
-    private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
-    {
-        if (_applicationProcess is null)
+        double clientW = client.Right - client.Left;
+        double clientH = client.Bottom - client.Top;
+        if (clientW <= 0 || clientH <= 0)
         {
             return;
         }
 
-        try
-        {
-            if (!_applicationProcess.HasExited)
-            {
-                _applicationProcess.CloseMainWindow();
-                if (!_applicationProcess.WaitForExit(500))
-                {
-                    _applicationProcess.Kill();
-                }
-            }
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        var scale = Math.Min(clientW / CanvasWidth, clientH / CanvasHeight);
+        var offsetX = (clientW - CanvasWidth * scale) / 2.0;
+        var offsetY = (clientH - CanvasHeight * scale) / 2.0;
+
+        var left = (int)Math.Round(offsetX + AppX * scale);
+        var top = (int)Math.Round(offsetY + AppY * scale);
+        var right = left + (int)Math.Round(AppWidth * scale);
+        var bottom = top + (int)Math.Round(AppHeight * scale);
+
+        // SetWindowRgn 은 리전 소유권을 가져가므로 full 은 여기서 해제하지 않는다.
+        var full = CreateRectRgn(0, 0, (int)clientW, (int)clientH);
+        var hole = CreateRectRgn(left, top, right, bottom);
+        CombineRgn(full, full, hole, RgnDiff);
+        DeleteObject(hole);
+
+        SetWindowRgn(hwnd, full, true);
     }
 
     private void OnWindowMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -211,15 +212,29 @@ public partial class MainWindow : Window
             : WindowState.Maximized;
     }
 
-    private const int WM_NCCALCSIZE = 0x0083;
+    private const int RgnDiff = 4;
 
-    private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    [DllImport("gdi32.dll")]
+    private static extern IntPtr CreateRectRgn(int left, int top, int right, int bottom);
+
+    [DllImport("gdi32.dll")]
+    private static extern int CombineRgn(IntPtr dest, IntPtr src1, IntPtr src2, int mode);
+
+    [DllImport("gdi32.dll")]
+    private static extern bool DeleteObject(IntPtr obj);
+
+    [DllImport("user32.dll")]
+    private static extern int SetWindowRgn(IntPtr hWnd, IntPtr hRgn, bool redraw);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetClientRect(IntPtr hWnd, out Rect32 lpRect);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Rect32
     {
-        if (msg == WM_NCCALCSIZE && wParam != IntPtr.Zero)
-        {
-            handled = true;
-        }
-
-        return IntPtr.Zero;
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
     }
 }

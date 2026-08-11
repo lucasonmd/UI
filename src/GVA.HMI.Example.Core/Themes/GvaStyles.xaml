@@ -420,10 +420,10 @@
                             </Grid.ColumnDefinitions>
                             <Border x:Name="LeftHalf" Grid.Column="0"
                                     CornerRadius="{StaticResource TopLabelLeftCornerRadius}"
-                                    Background="{StaticResource ForegroundDimBrush}"/>
+                                    Background="{StaticResource LabelEnabledBrush}"/>
                             <Border x:Name="RightHalf" Grid.Column="1"
                                     CornerRadius="{StaticResource TopLabelRightCornerRadius}"
-                                    Background="{StaticResource ForegroundDimBrush}"/>
+                                    Background="{StaticResource LabelEnabledBrush}"/>
                         </Grid>
 
                         <Border x:Name="DisabledHatch"
@@ -447,11 +447,12 @@
                             <Setter TargetName="RightHalf" Property="Background" Value="{StaticResource LabelSelectedBrush}"/>
                         </Trigger>
 
+                        <!-- SoftButton 의 disable 과 달리 여기엔 Opacity 0.5 가 더 걸려 있었다.
+                             검은 캔버스 위에서 #141416 을 반투명으로 깔면 #0A0A0B 가 되어
+                             사실상 사라진다 - 꺼진 게 아니라 없는 것처럼 보이던 원인. -->
                         <Trigger Property="State" Value="LabelStateDisabled">
-                            <Setter TargetName="LeftHalf" Property="Background" Value="{StaticResource SurfaceOffBrush}"/>
-                            <Setter TargetName="RightHalf" Property="Background" Value="{StaticResource SurfaceOffBrush}"/>
-                            <Setter TargetName="LeftHalf" Property="Opacity" Value="0.5"/>
-                            <Setter TargetName="RightHalf" Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="LeftHalf" Property="Background" Value="{StaticResource LabelDisabledBrush}"/>
+                            <Setter TargetName="RightHalf" Property="Background" Value="{StaticResource LabelDisabledBrush}"/>
                             <Setter TargetName="DisabledHatch" Property="Visibility" Value="Visible"/>
                         </Trigger>
 

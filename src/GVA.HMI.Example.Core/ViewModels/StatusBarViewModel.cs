@@ -6,6 +6,13 @@ using HMICore.Models;
 
 namespace HMICore.ViewModels;
 
+/// <summary>
+/// StatusBar 전체의 데이터 컨텍스트. 이 바깥에서 쓰이지 않는 데이터 단위
+/// (<see cref="SystemDataModel"/> · <see cref="AlarmDataModel"/> ·
+/// <see cref="CustomStatusItemViewModel"/>)는 한 파일에 같이 둔다.
+/// 여러 화면이 공유하는 <see cref="ObservableObject"/> 와 JSON 스키마
+/// (Models/StatusBarCustomData.cs)만 따로 남겼다.
+/// </summary>
 public sealed class StatusBarViewModel : ObservableObject
 {
     private readonly DispatcherTimer _clock;
@@ -148,4 +155,125 @@ public sealed class StatusBarViewModel : ObservableObject
     }
 
     private void UpdateClock() => SystemData.CurrentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+}
+
+/// <summary>StatusBar 윗줄의 기준 정보 - 시각 · 방위 · 좌표.</summary>
+public sealed class SystemDataModel : ObservableObject
+{
+    private string _currentTime = string.Empty;
+    private string _headingMil = string.Empty;
+    private string _coordinate = string.Empty;
+
+    public string CurrentTime
+    {
+        get => _currentTime;
+        set => SetProperty(ref _currentTime, value);
+    }
+
+    public string HeadingMil
+    {
+        get => _headingMil;
+        set => SetProperty(ref _headingMil, value);
+    }
+
+    public string Coordinate
+    {
+        get => _coordinate;
+        set => SetProperty(ref _coordinate, value);
+    }
+}
+
+/// <summary>StatusBar 아랫줄의 현재 알람과 등급별 집계.</summary>
+public sealed class AlarmDataModel : ObservableObject
+{
+    private string _alarmTime = string.Empty;
+    private string _alarmMessage = string.Empty;
+    private int _alarmCount;
+    private string _alarmLevel = string.Empty;
+    private int _warningCount;
+    private int _cautionCount;
+    private int _ignoreCount;
+
+    public string AlarmTime
+    {
+        get => _alarmTime;
+        set => SetProperty(ref _alarmTime, value);
+    }
+
+    public string AlarmMessage
+    {
+        get => _alarmMessage;
+        set => SetProperty(ref _alarmMessage, value);
+    }
+
+    public int AlarmCount
+    {
+        get => _alarmCount;
+        set => SetProperty(ref _alarmCount, value);
+    }
+
+    public string AlarmLevel
+    {
+        get => _alarmLevel;
+        set => SetProperty(ref _alarmLevel, value);
+    }
+
+    public int WarningCount
+    {
+        get => _warningCount;
+        set => SetProperty(ref _warningCount, value);
+    }
+
+    public int CautionCount
+    {
+        get => _cautionCount;
+        set => SetProperty(ref _cautionCount, value);
+    }
+
+    public int IgnoreCount
+    {
+        get => _ignoreCount;
+        set => SetProperty(ref _ignoreCount, value);
+    }
+}
+
+/// <summary>커스텀 전시정보 한 칸. 비율(Ratio)과 색은 JSON 에서 온다.</summary>
+public sealed class CustomStatusItemViewModel : ObservableObject
+{
+    private string _name = string.Empty;
+    private string _value = string.Empty;
+    private Brush _valueBrush = Brushes.White;
+
+    public string Key { get; init; } = string.Empty;
+
+    public double Ratio { get; init; } = 1;
+
+    public string Name
+    {
+        get => _name;
+        set => SetProperty(ref _name, value);
+    }
+
+    public string Value
+    {
+        get => _value;
+        set => SetProperty(ref _value, value);
+    }
+
+    public Brush ValueBrush
+    {
+        get => _valueBrush;
+        set => SetProperty(ref _valueBrush, value);
+    }
+}
+
+/// <summary>Core 창의 루트 데이터 컨텍스트.</summary>
+public sealed class MainViewModel : ObservableObject
+{
+    public MainViewModel()
+    {
+        StatusBar = new StatusBarViewModel();
+    }
+
+    public StatusBarViewModel StatusBar { get; }
 }
