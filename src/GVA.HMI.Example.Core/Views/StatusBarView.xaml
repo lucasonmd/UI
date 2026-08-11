@@ -20,19 +20,13 @@
 
     <UserControl.Resources>
         <!-- ===== 표면 레이어 ===== -->
-        <!-- 들린 면: 기준 정보(TIME/HDG, POS, 집계)가 앉는 자리. -->
+        <!-- 전시정보 존은 전부 이 한 면을 쓴다. 존끼리는 배경 톤이 아니라
+             필드 구분선(과 알람의 경보 강조선)으로만 나뉜다. -->
         <LinearGradientBrush x:Key="ZoneSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Offset="0" Color="#FF191A1E"/>
             <GradientStop Offset="1" Color="#FF141519"/>
         </LinearGradientBrush>
-        <!-- 파인 면: 내용이 실리는 자리(커스텀 전시, 알람). 윗변이 더 어두워 파여 보인다. -->
-        <LinearGradientBrush x:Key="ZoneWellBrush" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Offset="0" Color="#FF0B0C0F"/>
-            <GradientStop Offset="0.35" Color="#FF0F1013"/>
-            <GradientStop Offset="1" Color="#FF111215"/>
-        </LinearGradientBrush>
 
-        <SolidColorBrush x:Key="ZoneSeamBrush" Color="#FF07080A"/>
         <SolidColorBrush x:Key="ZoneEdgeLightBrush" Color="#1AFFFFFF"/>
         <SolidColorBrush x:Key="FieldDividerBrush" Color="#14FFFFFF"/>
         <SolidColorBrush x:Key="LabelBrush" Color="#FF98A0A8"/>
@@ -43,12 +37,6 @@
             <Setter Property="BorderBrush" Value="{StaticResource ZoneEdgeLightBrush}"/>
             <Setter Property="BorderThickness" Value="0,1,0,0"/>
             <Setter Property="Padding" Value="14,0"/>
-        </Style>
-        <Style x:Key="ZoneWellStyle" TargetType="{x:Type Border}">
-            <Setter Property="Background" Value="{StaticResource ZoneWellBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource ZoneSeamBrush}"/>
-            <Setter Property="BorderThickness" Value="1,1,1,0"/>
-            <Setter Property="Padding" Value="0"/>
         </Style>
 
         <!--
@@ -105,7 +93,8 @@
         <Style x:Key="AlertAccentStyle" TargetType="{x:Type Border}">
             <Setter Property="BorderThickness" Value="3,0,0,0"/>
             <Setter Property="BorderBrush" Value="{StaticResource ForegroundOffBrush}"/>
-            <Setter Property="Padding" Value="14,0"/>
+            <!-- 오른쪽 18 은 집계 존 앞 구분선까지의 간격(구분선 반대쪽도 18). -->
+            <Setter Property="Padding" Value="14,0,18,0"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding AlarmData.AlarmLevel}" Value="경고">
                     <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}"/>
@@ -217,7 +206,11 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource ZoneWellStyle}">
+                <!--
+                    알람 존도 다른 존과 같은 면을 쓴다. 톤이 같아지면 왼쪽 경계는 경보
+                    강조선(3px)이, 오른쪽 경계는 집계 존 앞의 헤어라인이 대신한다.
+                -->
+                <Border Grid.Column="1" Style="{StaticResource ZoneSurfaceStyle}" Padding="0">
                     <Border Style="{StaticResource AlertAccentStyle}">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
@@ -243,8 +236,10 @@
                     </Border>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource ZoneSurfaceStyle}">
+                <Border Grid.Column="2" Style="{StaticResource ZoneSurfaceStyle}" Padding="0,0,14,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- 알람 존과의 경계. 왼쪽 여백은 알람 존이 이미 냈으므로 0. -->
+                        <Border Style="{StaticResource FieldDividerStyle}" Margin="0,0,18,0"/>
                         <Grid Style="{StaticResource TallyCellStyle}">
                             <TextBlock Style="{StaticResource StatusLabelStyle}" Text="WARN" HorizontalAlignment="Left"/>
                             <TextBlock Style="{StaticResource TallyStyle}" Text="{Binding AlarmData.WarningCount}"
