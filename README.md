@@ -321,8 +321,7 @@ Application 은 통째로 교체 가능해야 한다 — 그래서 진짜로 두
    Application 영역 x/y/width/height)는 `OwnerWindowSync.cs` 상단 상수다 - Core
    쪽 `CoreUiBuilder.cs` 상단의 같은 상수와 **값이 반드시 같아야 한다**(설정
    파일을 공유하지 않기로 했으므로, 좌표를 바꿀 땐 두 파일을 각각 고친다).
-4. Core 는 자기 화면에서 그 자리를 그냥 비워둔다(`VoidBrush` 배경 + "LAUNCHING
-   APPLICATION…" 자리표시자, Application 창이 뜨는 즉시 가려진다).
+4. Core 는 그 자리를 **실제로 투명하게 비워둔다**(아래 "Application 영역을 비우는 법").
 5. 이중 안전장치 : Core 의 `Closing` 에서도 Application 프로세스를 명시적으로
    `CloseMainWindow`/`Kill` 하고, Application 쪽도 매 폴링마다 `IsWindow(coreHwnd)`
    로 Core 생존 여부를 확인해 죽었으면 스스로 종료한다.
@@ -334,6 +333,37 @@ Application 은 통째로 교체 가능해야 한다 — 그래서 진짜로 두
 리소스 자체를 묶지는 않는다. 완전히 독립된 배포 단위로 두고 싶어서 일부러 이렇게
 했다(둘 중 하나만 있어도 컴파일된다 - `GVA.HMI.Example.Application.exe` 를
 `--owner` 없이 단독 실행하면 그냥 가운데 정렬된 보통 창으로 뜬다, 디버그용).
+
+## Application 영역을 비우는 법
+
+Application 영역(1590×915)만 투명하고 나머지는 불투명해야 한다. **순수 WPF 로만**
+처리하며 P/Invoke 는 쓰지 않는다.
+
+1. **창을 통째로 투명하게 한다** — `MainWindow.xaml` 의 `AllowsTransparency="True"` +
+   `Background="Transparent"`.
+2. **비워둘 자리만 남기고 다시 칠한다** — `CoreUiBuilder.BuildVoidBackdrop()` 이
+   `CombinedGeometry(Exclude)` 로 "캔버스 − Application 영역" 모양의 `Path` 를 만들어
+   맨 아래에 깐다. `Grid.Background` 를 쓰지 않는 이유가 이것이다 - 사각형 하나라
+   가운데를 비울 수가 없다.
+3. **그 자리에 얹을 자리를 하나 둔다** — `CoreUiBuilder.ApplicationHost`
+   (`ContentControl`, 배경 없음). 비워두면 완전 투명이라 뒤가 비치고 클릭도
+   통과하며, `Content` 를 넣으면 그 엘리먼트만 그 위에 그려진다.
+
+**왜 `SetWindowRgn` 이 아닌가** : 윈도우 리전은 그 자리 픽셀을 아예 잘라내므로,
+Application 영역 위에 Core 가 WPF 엘리먼트를 얹으면 그것까지 같이 사라진다.
+오버레이를 얹어야 한다는 요구를 리전으로는 만족시킬 수 없다.
+
+**대가** : `AllowsTransparency` 는 창 전체를 소프트웨어 렌더링으로 떨어뜨린다.
+1920×1080 전면 UI 에서 싸지 않지만 위 요구와 맞바꾼 값이다.
+
+**얻은 것** : 투명 영역이 나머지 UI 와 똑같이 `Viewbox` 를 타고 스케일되므로
+좌표를 다시 계산할 일이 없다. 창 크기·DPI 가 바뀌어도 손댈 게 없고,
+`SizeChanged` 훅도 필요 없다.
+
+**배경판이 캔버스보다 큰 이유** : 창 비율이 16:9 가 아니면 `Viewbox` 가 레터박스
+여백을 남기는데, 창 배경이 투명이라 그 여백까지 뚫려 보인다. 그래서 배경판을
+`BackdropOverscan`(2000) 만큼 넘치게 그려 덮는다. 이게 성립하려면 `root` 와
+`Viewbox` 의 `ClipToBounds` 가 `false` 여야 한다(코드에 명시해 뒀다).
 
 ## Core UI 리디자인 (premium embedded HMI)
 

@@ -10,7 +10,8 @@
     Height="1080"
     MinWidth="640"
     MinHeight="380"
-    Background="#08080A"
+    AllowsTransparency="True"
+    Background="Transparent"
     MouseLeftButtonDown="OnWindowMouseLeftButtonDown"
     ResizeMode="CanResize"
     TextOptions.TextFormattingMode="Ideal"
@@ -19,12 +20,22 @@
     mc:Ignorable="d">
 
     <!--
-        WindowStyle="None" + ResizeMode="CanResize" 만 쓰면 창 가장자리 7px 가
-        DWM 글래스 프레임(라이트 테마에서 #F4F7FC)으로 합성돼 거의 검은 화면
-        좌/우에 흰 띠로 보인다. WindowChrome 으로 그 프레임을 직접 0 으로 지정한다.
-        - GlassFrameThickness=0 : 흰 띠의 원인인 글래스 프레임 제거
+        AllowsTransparency="True" + Background="Transparent" 인 이유 : Application
+        영역(1590x915)을 창에서 비워 그 자리로 뒤가 비치게 하되, 그 위에 Core 가
+        WPF 엘리먼트를 얹을 수 있어야 한다. Win32 윈도우 리전(SetWindowRgn)은
+        그 자리 픽셀을 아예 잘라내므로 얹은 엘리먼트까지 같이 사라져서 못 쓴다.
+
+        대가 : AllowsTransparency 는 창 전체를 소프트웨어 렌더링으로 떨어뜨린다.
+        1920x1080 전면 UI 에서는 싸지 않지만, 위 요구사항과 맞바꾼 값이다.
+
+        실제로 뚫리는 자리는 Controls/CoreUiBuilder.cs 의 배경판이 정한다 - 창은
+        전부 투명이고, 그 위에 "캔버스 전체 - Application 영역" 모양으로 칠한다.
+
+        WindowChrome 은 이제 테두리 드래그 리사이즈용으로만 남는다.
         - CaptionHeight=0       : 제목표시줄 없음(드래그는 OnWindowMouseLeftButtonDown)
         - ResizeBorderThickness : 테두리 드래그 리사이즈는 그대로 유지
+        - GlassFrameThickness=0 : 레이어드 창이라 글래스 프레임은 원래 안 생기지만,
+                                  WindowStyle 을 되돌릴 때를 대비해 0 으로 못박아 둔다.
     -->
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome
