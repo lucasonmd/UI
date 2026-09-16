@@ -43,11 +43,30 @@ public sealed class StatusBarViewModel : ObservableObject
         _clock.Start();
     }
 
+    /// <summary>
+    /// 커스텀 전시정보 JSON 을 읽어 <see cref="CustomItems"/> 를 다시 채운다.
+    /// 두 가지 형태를 모두 받는다 :
+    /// <code>
+    /// { "status_bar": { "itemWithLayout": [...], "itemWithValue": {...} } }  설정 파일을 통째로 넘길 때
+    /// { "itemWithLayout": [...], "itemWithValue": {...} }                    JsonNode 로 그 부분만
+    ///                                                                        떼서 ToString() 해 넘길 때
+    /// </code>
+    /// </summary>
     public void LoadCustomDisplayData(string json)
     {
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var root = JsonSerializer.Deserialize<StatusBarCustomRoot>(json, options);
-        var section = root?.StatusBar;
+
+        StatusBarCustomSection? section;
+        using (var doc = JsonDocument.Parse(json))
+        {
+            var wrapped = doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("status_bar", out _);
+
+            section = wrapped
+                ? JsonSerializer.Deserialize<StatusBarCustomRoot>(json, options)?.StatusBar
+                : JsonSerializer.Deserialize<StatusBarCustomSection>(json, options);
+        }
+
         if (section is null)
         {
             return;
