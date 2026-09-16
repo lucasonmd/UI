@@ -2,3 +2,6 @@ bin/
 obj/
 .vs/
 *.user
+
+# NGVA 규격 초안 (외부 배포 금지 - 저장소에 올리지 않는다)
+doc/NGVA_RMDP_1.1.0_Draft/
