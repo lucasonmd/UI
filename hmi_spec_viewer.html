@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HMI 화면 설계 뷰어</title>
+<style>
+:root{
+  --paper:#eef1f0; --panel:#ffffff; --ink:#1d2528; --sub:#5b6769; --line:#c9d0cf;
+  --accent:#1f6f8b; --hot:#e0a100;
+  --scr-bg:#162024; --scr-box:#24323a; --scr-edge:#43565e; --scr-text:#a9bcc1;
+  font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55}
+.app{display:grid;grid-template-columns:230px 1fr 340px;grid-template-rows:48px 1fr;height:100%}
+header{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:15px;margin:0 12px 0 0;font-weight:700}
+.crumb{flex:1;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb a{color:var(--accent);text-decoration:none;cursor:pointer}
+.crumb a:hover{text-decoration:underline}
+.crumb b{color:var(--ink)}
+button{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 10px;border-radius:4px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible,.tree a:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+
+nav.tree{border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:12px 8px}
+.tree ul{list-style:none;margin:0;padding-left:14px}
+.tree>ul{padding-left:0}
+.tree a{display:block;padding:4px 8px;border-radius:4px;color:var(--ink);text-decoration:none;cursor:pointer}
+.tree a:hover{background:var(--paper)}
+.tree a.on{background:var(--accent);color:#fff}
+.tree .id{color:var(--sub);font-size:12px;margin-left:6px}
+.tree a.on .id{color:#d6e8ee}
+
+main{overflow:auto;padding:24px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.stage{position:relative;width:100%;max-width:1000px;aspect-ratio:16/10;background:var(--scr-bg);border-radius:6px;overflow:hidden;user-select:none;box-shadow:0 0 0 8px #2a3336}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.hs{position:absolute;border:1px solid transparent;border-radius:3px}
+.mock .hs{background:var(--scr-box);border-color:var(--scr-edge);color:var(--scr-text);display:flex;align-items:center;justify-content:center;font-size:13px;text-align:center;padding:4px}
+.hs .no{position:absolute;top:-1px;left:-1px;min-width:20px;height:20px;padding:0 5px;border-radius:3px 0 3px 0;background:var(--hot);color:#1d2528;font-size:12px;font-weight:700;display:none;align-items:center;justify-content:center}
+.show .hs{outline:1px dashed var(--hot);outline-offset:-1px}
+.show .hs .no{display:flex}
+.hs.link{cursor:pointer}
+.hs.active{outline:2px solid var(--hot)!important;outline-offset:-2px;box-shadow:0 0 0 9999px rgba(0,0,0,.35);z-index:2}
+.hs.link:hover{outline:2px solid var(--hot);outline-offset:-2px}
+.editing{cursor:crosshair}
+.editing .hs{pointer-events:none}
+.draft{position:absolute;border:2px solid #4fd1ff;background:rgba(79,209,255,.15);pointer-events:none}
+.hint{color:var(--sub);font-size:12px}
+
+aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:18px 18px 30px}
+aside h2{font-size:18px;margin:0 0 2px}
+aside .sid{color:var(--sub);font-size:12px;margin-bottom:10px}
+aside .sdesc{margin:0 0 16px}
+.items{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.items li{display:grid;grid-template-columns:26px 1fr;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:default}
+.items li.active{background:#fff6d9}
+.items .n{width:22px;height:22px;border-radius:3px;background:var(--hot);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.items .nm{font-weight:700}
+.items .to{font-size:12px;color:var(--accent);cursor:pointer}
+.items p{margin:2px 0 0;color:var(--sub)}
+.coord{margin-top:18px;padding:10px;border:1px solid #4fd1ff;border-radius:4px;background:#f1fbff;display:none}
+.coord code{display:block;font-family:Consolas,monospace;font-size:13px;margin:6px 0;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>HMI 화면 설계</h1>
+    <div class="crumb" id="crumb"></div>
+    <button id="btnBack" title="이전 화면 (Alt+←)">이전</button>
+    <button id="btnShow" aria-pressed="true">번호 표시</button>
+    <button id="btnEdit" aria-pressed="false">좌표 따기</button>
+  </header>
+  <nav class="tree" id="tree"></nav>
+  <main>
+    <div class="stage show" id="stage"></div>
+    <div class="hint" id="hint">링크가 있는 영역을 누르면 해당 화면으로 이동합니다.</div>
+  </main>
+  <aside id="side"></aside>
+</div>
+
+<script>
+/* ===========================================================
+   화면 정의 — 이 부분만 수정하면 됩니다 (엑셀/JSON에서 생성 가능)
+   rect: [x, y, 너비, 높이]  단위: 화면 대비 %
+   to:   누르면 이동할 화면 ID
+   image: 실제 캡처 이미지 경로 (없으면 목업 박스로 그림)
+   =========================================================== */
+const ROOT = 'MAIN';
+const SCREENS = {
+  MAIN: {
+    title: '메인 화면', image: null,
+    desc: '전원 인가 후 첫 화면. 주요 상태를 한눈에 보여주고 하위 기능 화면으로 진입한다.',
+    children: ['NAV', 'WEAPON', 'STATUS'],
+    items: [
+      { name: '상단 상태바', rect: [0, 0, 100, 8], desc: '시각, 통신 상태, 사용자 권한 표시.' },
+      { name: '속도 게이지', rect: [4, 14, 40, 52], desc: '0~120 km/h. 90 이상 시 황색, 110 이상 시 적색.' },
+      { name: '경고 영역', rect: [48, 14, 48, 52], desc: '최근 경고 5건을 최신순으로 표시. 항목 선택 시 상세 팝업.' },
+      { name: '항법', rect: [4, 74, 28, 20], to: 'NAV', desc: '항법 화면으로 이동.' },
+      { name: '무장', rect: [36, 74, 28, 20], to: 'WEAPON', desc: '무장 화면으로 이동. 권한 없는 경우 비활성.' },
+      { name: '차량 상태', rect: [68, 74, 28, 20], to: 'STATUS', desc: '차량 상태 화면으로 이동.' }
+    ]
+  },
+  NAV: {
+    title: '항법', image: null,
+    desc: '현재 위치와 경로를 지도 위에 표시한다.',
+    children: ['NAV_ROUTE'],
+    items: [
+      { name: '지도', rect: [3, 4, 64, 88], desc: '현재 위치 중심. 핀치/휠로 확대·축소.' },
+      { name: '경로 목록', rect: [70, 4, 27, 56], desc: '저장된 경로. 선택 시 지도에 표시.' },
+      { name: '경로 설정', rect: [70, 64, 27, 13], to: 'NAV_ROUTE', desc: '새 경로를 만들거나 편집.' },
+      { name: '메인으로', rect: [70, 80, 27, 12], to: 'MAIN', desc: '메인 화면으로 복귀.' }
+    ]
+  },
+  NAV_ROUTE: {
+    title: '경로 설정', image: null,
+    desc: '경유점을 추가·삭제해 경로를 구성한다.',
+    items: [
+      { name: '경유점 표', rect: [3, 4, 55, 76], desc: '순번, 좌표, 도착 예정 시각.' },
+      { name: '지도 미리보기', rect: [61, 4, 36, 76], desc: '편집 중인 경로 미리보기.' },
+      { name: '저장', rect: [3, 84, 45, 12], to: 'NAV', desc: '저장 후 항법 화면으로 복귀.' },
+      { name: '취소', rect: [52, 84, 45, 12], to: 'NAV', desc: '변경 내용을 버리고 복귀.' }
+    ]
+  },
+  WEAPON: {
+    title: '무장', image: null,
+    desc: '무장 상태 조회 화면.',
+    items: [
+      { name: '상태 요약', rect: [3, 4, 94, 40], desc: '장비별 정상/점검 필요 상태.' },
+      { name: '상세 목록', rect: [3, 48, 94, 32], desc: '장비 선택 시 상세 정보.' },
+      { name: '메인으로', rect: [3, 84, 94, 12], to: 'MAIN', desc: '메인 화면으로 복귀.' }
+    ]
+  },
+  STATUS: {
+    title: '차량 상태', image: null,
+    desc: '동력·전원·냉각 계통 상태를 표시한다.',
+    items: [
+      { name: '동력', rect: [3, 4, 30, 76], desc: '엔진 RPM, 온도.' },
+      { name: '전원', rect: [35, 4, 30, 76], desc: '배터리 전압, 발전기 상태.' },
+      { name: '냉각', rect: [67, 4, 30, 76], desc: '냉각수 온도, 팬 동작.' },
+      { name: '메인으로', rect: [3, 84, 94, 12], to: 'MAIN', desc: '메인 화면으로 복귀.' }
+    ]
+  }
+};
+
+/* ===================== 뷰어 로직 ===================== */
+const $ = id => document.getElementById(id);
+const parent = {};
+for (const [id, s] of Object.entries(SCREENS)) (s.children || []).forEach(c => parent[c] = id);
+
+let current = null, editing = false;
+
+function pathTo(id){ const p=[]; while(id){ p.unshift(id); id=parent[id]; } return p; }
+function go(id){ if (SCREENS[id]) location.hash = id; }
+
+function renderTree(){
+  const build = id => {
+    const s = SCREENS[id];
+    const kids = (s.children || []).filter(c => SCREENS[c]);
+    return `<li><a data-id="${id}" tabindex="0">${s.title}<span class="id">${id}</span></a>${kids.length ? '<ul>' + kids.map(build).join('') + '</ul>' : ''}</li>`;
+  };
+  $('tree').innerHTML = '<ul>' + build(ROOT) + '</ul>';
+  $('tree').querySelectorAll('a').forEach(a => {
+    a.onclick = () => go(a.dataset.id);
+    a.onkeydown = e => { if (e.key === 'Enter') go(a.dataset.id); };
+  });
+}
+
+function setActive(i, on){
+  document.querySelectorAll(`[data-i="${i}"]`).forEach(el => el.classList.toggle('active', on));
+}
+
+function render(id){
+  current = id;
+  const s = SCREENS[id];
+  document.querySelectorAll('.tree a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
+  $('crumb').innerHTML = pathTo(id).map((p, i, arr) =>
+    i === arr.length - 1 ? `<b>${SCREENS[p].title}</b>` : `<a data-id="${p}">${SCREENS[p].title}</a>`).join(' › ');
+  $('crumb').querySelectorAll('a').forEach(a => a.onclick = () => go(a.dataset.id));
+
+  const stage = $('stage');
+  stage.classList.toggle('mock', !s.image);
+  stage.innerHTML = (s.image ? `<img src="${s.image}" alt="${s.title}">` : '') +
+    s.items.map((it, i) => {
+      const [x, y, w, h] = it.rect;
+      return `<div class="hs${it.to ? ' link' : ''}" data-i="${i}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%"
+        title="${it.to ? '→ ' + SCREENS[it.to].title : it.name}"><span class="no">${i + 1}</span>${s.image ? '' : it.name}</div>`;
+    }).join('');
+
+  $('side').innerHTML = `<h2>${s.title}</h2><div class="sid">${id}</div><p class="sdesc">${s.desc || ''}</p>
+    <ol class="items">${s.items.map((it, i) => `<li data-i="${i}"><span class="n">${i + 1}</span><div>
+      <div class="nm">${it.name}</div>${it.to ? `<span class="to" data-to="${it.to}">이동: ${SCREENS[it.to].title}</span>` : ''}
+      <p>${it.desc || ''}</p></div></li>`).join('')}</ol>
+    <div class="coord" id="coord"><b>선택한 영역 좌표</b><code id="coordOut"></code><button id="btnCopy">복사</button></div>`;
+
+  document.querySelectorAll('[data-i]').forEach(el => {
+    const i = el.dataset.i;
+    el.onmouseenter = () => setActive(i, true);
+    el.onmouseleave = () => setActive(i, false);
+  });
+  stage.querySelectorAll('.hs.link').forEach(el => el.onclick = () => go(s.items[el.dataset.i].to));
+  $('side').querySelectorAll('.to').forEach(el => el.onclick = () => go(el.dataset.to));
+  $('btnCopy').onclick = copyCoord;
+  if (editing) $('coord').style.display = 'block';
+}
+
+/* ---------- 좌표 따기: 이미지 위에 드래그 → rect 값 생성 ---------- */
+let start = null, draft = null;
+const pct = e => {
+  const r = $('stage').getBoundingClientRect();
+  return [Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100)),
+          Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100))];
+};
+$('stage').addEventListener('pointerdown', e => {
+  if (!editing) return;
+  start = pct(e);
+  draft?.remove();
+  draft = document.createElement('div'); draft.className = 'draft';
+  $('stage').appendChild(draft);
+  $('stage').setPointerCapture(e.pointerId);
+});
+$('stage').addEventListener('pointermove', e => {
+  if (!editing || !start) return;
+  const [x2, y2] = pct(e);
+  const x = Math.min(start[0], x2), y = Math.min(start[1], y2);
+  Object.assign(draft.style, { left: x + '%', top: y + '%', width: Math.abs(x2 - start[0]) + '%', height: Math.abs(y2 - start[1]) + '%' });
+});
+$('stage').addEventListener('pointerup', e => {
+  if (!editing || !start) return;
+  const [x2, y2] = pct(e);
+  const r = [Math.min(start[0], x2), Math.min(start[1], y2), Math.abs(x2 - start[0]), Math.abs(y2 - start[1])].map(v => Math.round(v * 10) / 10);
+  start = null;
+  $('coordOut').textContent = `rect: [${r.join(', ')}]`;
+});
+function copyCoord(){
+  const t = $('coordOut').textContent; if (!t) return;
+  const done = () => { $('btnCopy').textContent = '복사됨'; setTimeout(() => $('btnCopy').textContent = '복사', 1200); };
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, fallback); else fallback();
+  function fallback(){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+}
+
+/* ---------- 버튼 ---------- */
+$('btnBack').onclick = () => history.back();
+$('btnShow').onclick = e => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+  e.currentTarget.setAttribute('aria-pressed', on);
+  $('stage').classList.toggle('show', on);
+};
+$('btnEdit').onclick = e => {
+  editing = !editing;
+  e.currentTarget.setAttribute('aria-pressed', editing);
+  $('stage').classList.toggle('editing', editing);
+  $('hint').textContent = editing ? '화면 위를 드래그하면 영역 좌표가 우측 하단에 나옵니다. 화면 정의의 rect에 붙여 넣으세요.' : '링크가 있는 영역을 누르면 해당 화면으로 이동합니다.';
+  draft?.remove(); draft = null;
+  const c = document.getElementById('coord'); if (c) c.style.display = editing ? 'block' : 'none';
+};
+
+window.addEventListener('hashchange', () => render(SCREENS[location.hash.slice(1)] ? location.hash.slice(1) : ROOT));
+renderTree();
+render(SCREENS[location.hash.slice(1)] ? location.hash.slice(1) : ROOT);
+</script>
+</body>
+</html>
